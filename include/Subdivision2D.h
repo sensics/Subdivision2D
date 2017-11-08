@@ -60,6 +60,8 @@
 
 namespace sensics {
 namespace subdiv2d {
+
+    using Point2f = std::array<float, 2>;
     /**
     The Subdiv2D class described in this section is used to perform various planar subdivision on
     a set of 2D points (represented as vector of Point2f). OpenCV subdivides a plane into triangles
