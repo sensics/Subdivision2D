@@ -110,7 +110,7 @@ namespace subdiv2d {
         freePoint = 0;
         recentEdge = 0;
     }
-
+#if 0
     Subdiv2D::Subdiv2D(Rect rect) {
         validGeometry = false;
         freeQEdge = 0;
@@ -119,6 +119,7 @@ namespace subdiv2d {
 
         initDelaunay(rect);
     }
+#endif
 
     Subdiv2D::QuadEdge::QuadEdge() {
         next[0] = next[1] = next[2] = next[3] = 0;
@@ -425,6 +426,7 @@ namespace subdiv2d {
             insert(ptvec[i]);
     }
 
+#if 0
     void Subdiv2D::initDelaunay(Rect rect) {
         CV_INSTRUMENT_REGION()
 
@@ -469,7 +471,7 @@ namespace subdiv2d {
 
         recentEdge = edge_AB;
     }
-
+#endif
     void Subdiv2D::clearVoronoi() {
         size_t i, total = qedges.size();
 

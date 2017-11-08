@@ -107,6 +107,7 @@ namespace subdiv2d {
          */
         Subdiv2D();
 
+#if 0
         /** @overload
 
         @param rect Rectangle that includes all of the 2D points that are to be added to the subdivision.
@@ -123,6 +124,7 @@ namespace subdiv2d {
 
          */
         void initDelaunay(Rect rect);
+#endif
 
         /** @brief Insert a single point into a Delaunay triangulation.
 
@@ -181,6 +183,7 @@ namespace subdiv2d {
          */
         int findNearest(Point2f pt, Point2f* nearestPt = 0);
 
+#if 0
         /** @brief Returns a list of all edges.
 
         @param edgeList Output vector.
@@ -189,6 +192,7 @@ namespace subdiv2d {
         vertices. i.e. org_x = v[0], org_y = v[1], dst_x = v[2], dst_y = v[3].
          */
         void getEdgeList(std::vector<Vec4f>& edgeList) const;
+#endif
 
         /** @brief Returns a list of the leading edge ID connected to each triangle.
 
@@ -198,6 +202,7 @@ namespace subdiv2d {
          */
         void getLeadingEdgeList(std::vector<int>& leadingEdgeList) const;
 
+#if 0
         /** @brief Returns a list of all triangles.
 
         @param triangleList Output vector.
@@ -206,6 +211,7 @@ namespace subdiv2d {
         vertices. i.e. p1_x = v[0], p1_y = v[1], p2_x = v[2], p2_y = v[3], p3_x = v[4], p3_y = v[5].
          */
         void getTriangleList(std::vector<Vec6f>& triangleList) const;
+#endif
 
         /** @brief Returns a list of all Voroni facets.
 
