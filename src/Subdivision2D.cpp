@@ -77,7 +77,7 @@ namespace subdiv2d {
         return (edge & ~3) + ((edge + (nextEdgeType >> 4)) & 3);
     }
 
-    int Subdiv2D::edgeOrg(int edge, CV_OUT Point2f* orgpt) const {
+    int Subdiv2D::edgeOrg(int edge, Point2f* orgpt) const {
         CV_DbgAssert((size_t)(edge >> 2) < qedges.size());
         int vidx = qedges[edge >> 2].pt[edge & 3];
         if (orgpt) {
@@ -87,7 +87,7 @@ namespace subdiv2d {
         return vidx;
     }
 
-    int Subdiv2D::edgeDst(int edge, CV_OUT Point2f* dstpt) const {
+    int Subdiv2D::edgeDst(int edge, Point2f* dstpt) const {
         CV_DbgAssert((size_t)(edge >> 2) < qedges.size());
         int vidx = qedges[edge >> 2].pt[(edge + 2) & 3];
         if (dstpt) {
@@ -97,7 +97,7 @@ namespace subdiv2d {
         return vidx;
     }
 
-    Point2f Subdiv2D::getVertex(int vertex, CV_OUT int* firstEdge) const {
+    Point2f Subdiv2D::getVertex(int vertex, int* firstEdge) const {
         CV_DbgAssert((size_t)vertex < vtx.size());
         if (firstEdge)
             *firstEdge = vtx[vertex].firstEdge;
@@ -680,9 +680,8 @@ namespace subdiv2d {
         }
     }
 
-    void Subdiv2D::getVoronoiFacetList(const std::vector<int>& idx,
-                                       CV_OUT std::vector<std::vector<Point2f> >& facetList,
-                                       CV_OUT std::vector<Point2f>& facetCenters) {
+    void Subdiv2D::getVoronoiFacetList(const std::vector<int>& idx, std::vector<std::vector<Point2f> >& facetList,
+                                       std::vector<Point2f>& facetCenters) {
         calcVoronoi();
         facetList.clear();
         facetCenters.clear();
