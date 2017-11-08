@@ -53,6 +53,8 @@
 // Internal Includes
 #include "Subdivision2D.h"
 
+#include "AssertAndError.h"
+
 // Library/third-party includes
 // - none
 
@@ -63,7 +65,7 @@ namespace sensics {
 namespace subdiv2d {
 
     int Subdiv2D::nextEdge(int edge) const {
-        CV_DbgAssert((size_t)(edge >> 2) < qedges.size());
+        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
         return qedges[edge >> 2].next[edge & 3];
     }
 
@@ -72,33 +74,33 @@ namespace subdiv2d {
     int Subdiv2D::symEdge(int edge) const { return edge ^ 2; }
 
     int Subdiv2D::getEdge(int edge, int nextEdgeType) const {
-        CV_DbgAssert((size_t)(edge >> 2) < qedges.size());
+        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
         edge = qedges[edge >> 2].next[(edge + nextEdgeType) & 3];
         return (edge & ~3) + ((edge + (nextEdgeType >> 4)) & 3);
     }
 
     int Subdiv2D::edgeOrg(int edge, Point2f* orgpt) const {
-        CV_DbgAssert((size_t)(edge >> 2) < qedges.size());
+        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
         int vidx = qedges[edge >> 2].pt[edge & 3];
         if (orgpt) {
-            CV_DbgAssert((size_t)vidx < vtx.size());
+            Subdiv2D_DbgAssert((size_t)vidx < vtx.size());
             *orgpt = vtx[vidx].pt;
         }
         return vidx;
     }
 
     int Subdiv2D::edgeDst(int edge, Point2f* dstpt) const {
-        CV_DbgAssert((size_t)(edge >> 2) < qedges.size());
+        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
         int vidx = qedges[edge >> 2].pt[(edge + 2) & 3];
         if (dstpt) {
-            CV_DbgAssert((size_t)vidx < vtx.size());
+            Subdiv2D_DbgAssert((size_t)vidx < vtx.size());
             *dstpt = vtx[vidx].pt;
         }
         return vidx;
     }
 
     Point2f Subdiv2D::getVertex(int vertex, int* firstEdge) const {
-        CV_DbgAssert((size_t)vertex < vtx.size());
+        Subdiv2D_DbgAssert((size_t)vertex < vtx.size());
         if (firstEdge)
             *firstEdge = vtx[vertex].firstEdge;
         return vtx[vertex].pt;
@@ -127,7 +129,7 @@ namespace subdiv2d {
     }
 
     Subdiv2D::QuadEdge::QuadEdge(int edgeidx) {
-        CV_DbgAssert((edgeidx & 3) == 0);
+        Subdiv2D_DbgAssert((edgeidx & 3) == 0);
         next[0] = edgeidx;
         next[1] = edgeidx + 3;
         next[2] = edgeidx + 2;
@@ -220,7 +222,7 @@ namespace subdiv2d {
     }
 
     void Subdiv2D::deleteEdge(int edge) {
-        CV_DbgAssert((size_t)(edge >> 2) < (size_t)qedges.size());
+        Subdiv2D_DbgAssert((size_t)(edge >> 2) < (size_t)qedges.size());
         splice(edge, getEdge(edge, PREV_AROUND_ORG));
         int sedge = symEdge(edge);
         splice(sedge, getEdge(sedge, PREV_AROUND_ORG));
@@ -244,27 +246,26 @@ namespace subdiv2d {
     }
 
     void Subdiv2D::deletePoint(int vidx) {
-        CV_DbgAssert((size_t)vidx < vtx.size());
+        Subdiv2D_DbgAssert((size_t)vidx < vtx.size());
         vtx[vidx].firstEdge = freePoint;
         vtx[vidx].type = -1;
         freePoint = vidx;
     }
 
     int Subdiv2D::locate(Point2f pt, int& _edge, int& _vertex) {
-        CV_INSTRUMENT_REGION()
 
         int vertex = 0;
 
         int i, maxEdges = (int)(qedges.size() * 4);
 
         if (qedges.size() < (size_t)4)
-            CV_Error(CV_StsError, "Subdivision is empty");
+            Subdiv2D_Error(Error::StsError, "Subdivision is empty");
 
         if (pt.x < topLeft.x || pt.y < topLeft.y || pt.x >= bottomRight.x || pt.y >= bottomRight.y)
-            CV_Error(CV_StsOutOfRange, "");
+            Subdiv2D_Error(Error::StsOutOfRange, "");
 
         int edge = recentEdge;
-        CV_Assert(edge > 0);
+        Subdiv2D_Assert(edge > 0);
 
         int location = PTLOC_ERROR;
 
@@ -357,16 +358,15 @@ namespace subdiv2d {
     }
 
     int Subdiv2D::insert(Point2f pt) {
-        CV_INSTRUMENT_REGION()
 
         int curr_point = 0, curr_edge = 0, deleted_edge = 0;
         int location = locate(pt, curr_edge, curr_point);
 
         if (location == PTLOC_ERROR)
-            CV_Error(CV_StsBadSize, "");
+            Subdiv2D_Error(Error::StsBadSize, "");
 
         if (location == PTLOC_OUTSIDE_RECT)
-            CV_Error(CV_StsOutOfRange, "");
+            Subdiv2D_Error(Error::StsOutOfRange, "");
 
         if (location == PTLOC_VERTEX)
             return curr_point;
@@ -378,7 +378,7 @@ namespace subdiv2d {
         } else if (location == PTLOC_INSIDE)
             ;
         else
-            CV_Error_(CV_StsError, ("Subdiv2D::locate returned invalid location = %d", location));
+            Subdiv2D_Error_(Error::StsError, ("Subdiv2D::locate returned invalid location = %d", location));
 
         assert(curr_edge != 0);
         validGeometry = false;
@@ -420,7 +420,6 @@ namespace subdiv2d {
     }
 
     void Subdiv2D::insert(const std::vector<Point2f>& ptvec) {
-        CV_INSTRUMENT_REGION()
 
         for (size_t i = 0; i < ptvec.size(); i++)
             insert(ptvec[i]);
@@ -428,7 +427,6 @@ namespace subdiv2d {
 
 #if 0
     void Subdiv2D::initDelaunay(Rect rect) {
-        CV_INSTRUMENT_REGION()
 
         float big_coord = 3.f * MAX(rect.width, rect.height);
         float rx = (float)rect.x;
@@ -568,7 +566,6 @@ namespace subdiv2d {
     }
 
     int Subdiv2D::findNearest(Point2f pt, Point2f* nearestPt) {
-        CV_INSTRUMENT_REGION()
 
         if (!validGeometry)
             calcVoronoi();
@@ -593,7 +590,7 @@ namespace subdiv2d {
             Point2f t;
 
             for (;;) {
-                CV_Assert(edgeDst(edge, &t) > 0);
+                Subdiv2D_Assert(edgeDst(edge, &t) > 0);
                 if (isRightOf2(t, start, diff) >= 0)
                     break;
 
@@ -601,7 +598,7 @@ namespace subdiv2d {
             }
 
             for (;;) {
-                CV_Assert(edgeOrg(edge, &t) > 0);
+                Subdiv2D_Assert(edgeOrg(edge, &t) > 0);
 
                 if (isRightOf2(t, start, diff) < 0)
                     break;
@@ -628,6 +625,7 @@ namespace subdiv2d {
         return vertex;
     }
 
+#if 0
     void Subdiv2D::getEdgeList(std::vector<Vec4f>& edgeList) const {
         edgeList.clear();
 
@@ -641,6 +639,7 @@ namespace subdiv2d {
             }
         }
     }
+#endif
 
     void Subdiv2D::getLeadingEdgeList(std::vector<int>& leadingEdgeList) const {
         leadingEdgeList.clear();
@@ -660,6 +659,7 @@ namespace subdiv2d {
         }
     }
 
+#if 0
     void Subdiv2D::getTriangleList(std::vector<Vec6f>& triangleList) const {
         triangleList.clear();
         int i, total = (int)(qedges.size() * 4);
@@ -681,6 +681,7 @@ namespace subdiv2d {
             triangleList.push_back(Vec6f(a.x, a.y, b.x, b.y, c.x, c.y));
         }
     }
+#endif
 
     void Subdiv2D::getVoronoiFacetList(const std::vector<int>& idx, std::vector<std::vector<Point2f> >& facetList,
                                        std::vector<Point2f>& facetCenters) {
@@ -732,17 +733,18 @@ namespace subdiv2d {
                 int d_next = getEdge(e, NEXT_AROUND_DST);
 
                 // check points
-                CV_Assert(edgeOrg(e) == edgeOrg(o_next));
-                CV_Assert(edgeOrg(e) == edgeOrg(o_prev));
-                CV_Assert(edgeDst(e) == edgeDst(d_next));
-                CV_Assert(edgeDst(e) == edgeDst(d_prev));
+                Subdiv2D_Assert(edgeOrg(e) == edgeOrg(o_next));
+                Subdiv2D_Assert(edgeOrg(e) == edgeOrg(o_prev));
+                Subdiv2D_Assert(edgeDst(e) == edgeDst(d_next));
+                Subdiv2D_Assert(edgeDst(e) == edgeDst(d_prev));
 
                 if (j % 2 == 0) {
-                    CV_Assert(edgeDst(o_next) == edgeOrg(d_prev));
-                    CV_Assert(edgeDst(o_prev) == edgeOrg(d_next));
-                    CV_Assert(getEdge(getEdge(getEdge(e, NEXT_AROUND_LEFT), NEXT_AROUND_LEFT), NEXT_AROUND_LEFT) == e);
-                    CV_Assert(getEdge(getEdge(getEdge(e, NEXT_AROUND_RIGHT), NEXT_AROUND_RIGHT), NEXT_AROUND_RIGHT) ==
-                              e);
+                    Subdiv2D_Assert(edgeDst(o_next) == edgeOrg(d_prev));
+                    Subdiv2D_Assert(edgeDst(o_prev) == edgeOrg(d_next));
+                    Subdiv2D_Assert(
+                        getEdge(getEdge(getEdge(e, NEXT_AROUND_LEFT), NEXT_AROUND_LEFT), NEXT_AROUND_LEFT) == e);
+                    Subdiv2D_Assert(
+                        getEdge(getEdge(getEdge(e, NEXT_AROUND_RIGHT), NEXT_AROUND_RIGHT), NEXT_AROUND_RIGHT) == e);
                 }
             }
         }
