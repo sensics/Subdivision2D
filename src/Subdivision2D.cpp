@@ -1,3 +1,14 @@
+/** @file
+    @brief Implementation (based on subdivision2d.cpp in OpenCV imgproc) of a 2D subdivision class.
+
+    @date 2017
+
+*/
+
+// Copyright 2017 Sensics, Inc.
+// Copyright (C) 2000, Intel Corporation, all rights reserved.
+// Third party copyrights are property of their respective owners.
+
 /*M///////////////////////////////////////////////////////////////////////////////////////
 //
 //  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
@@ -38,7 +49,15 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
-#include "precomp.hpp"
+
+// Internal Includes
+#include "Subdivision2D.h"
+
+// Library/third-party includes
+// - none
+
+// Standard includes
+// - none
 
 namespace cv
 {
