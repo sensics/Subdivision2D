@@ -316,12 +316,12 @@ namespace subdiv2d {
             edgeOrg(edge, &org_pt);
             edgeDst(edge, &dst_pt);
 
-            double t1 = fabs(pt.x - org_pt.x);
-            t1 += fabs(pt.y - org_pt.y);
-            double t2 = fabs(pt.x - dst_pt.x);
-            t2 += fabs(pt.y - dst_pt.y);
-            double t3 = fabs(org_pt.x - dst_pt.x);
-            t3 += fabs(org_pt.y - dst_pt.y);
+            double t1 = std::abs(pt.x - org_pt.x);
+            t1 += std::abs(pt.y - org_pt.y);
+            double t2 = std::abs(pt.x - dst_pt.x);
+            t2 += std::abs(pt.y - dst_pt.y);
+            double t3 = std::abs(org_pt.x - dst_pt.x);
+            t3 += std::abs(org_pt.y - dst_pt.y);
 
             if (t1 < FLT_EPSILON) {
                 location = PTLOC_VERTEX;
@@ -331,7 +331,7 @@ namespace subdiv2d {
                 location = PTLOC_VERTEX;
                 vertex = edgeDst(edge);
                 edge = 0;
-            } else if ((t1 < t3 || t2 < t3) && fabs(triangleArea(pt, org_pt, dst_pt)) < FLT_EPSILON) {
+            } else if ((t1 < t3 || t2 < t3) && std::abs(triangleArea(pt, org_pt, dst_pt)) < FLT_EPSILON) {
                 location = PTLOC_ON_EDGE;
                 vertex = 0;
             }
@@ -533,7 +533,7 @@ namespace subdiv2d {
 
                 Point2f virt_point = computeVoronoiPoint(org0, dst0, org1, dst1);
 
-                if (fabs(virt_point.x) < FLT_MAX * 0.5 && fabs(virt_point.y) < FLT_MAX * 0.5) {
+                if (std::abs(virt_point.x) < FLT_MAX * 0.5 && std::abs(virt_point.y) < FLT_MAX * 0.5) {
                     quadedge.pt[3] = qedges[edge1 >> 2].pt[3 - (edge1 & 2)] = qedges[edge2 >> 2].pt[3 - (edge2 & 2)] =
                         newPoint(virt_point, true);
                 }
@@ -550,7 +550,7 @@ namespace subdiv2d {
 
                 Point2f virt_point = computeVoronoiPoint(org0, dst0, org1, dst1);
 
-                if (fabs(virt_point.x) < FLT_MAX * 0.5 && fabs(virt_point.y) < FLT_MAX * 0.5) {
+                if (std::abs(virt_point.x) < FLT_MAX * 0.5 && std::abs(virt_point.y) < FLT_MAX * 0.5) {
                     quadedge.pt[1] = qedges[edge1 >> 2].pt[1 + (edge1 & 2)] = qedges[edge2 >> 2].pt[1 + (edge2 & 2)] =
                         newPoint(virt_point, true);
                 }
