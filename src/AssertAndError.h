@@ -60,6 +60,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -148,9 +149,6 @@ namespace subdiv2d {
 
     /*! @brief Signals an error and raises the exception.
 
-    By default the function prints information about the error to stderr,
-    then it either stops if setBreakOnError() had been called before or raises the exception.
-    It is possible to alternate error processing by using redirectError().
     @param _code - error code (Error::Code)
     @param _err - error description
     @param _func - function name. Available only when the compiler supports getting it
@@ -159,7 +157,22 @@ namespace subdiv2d {
     @see Subdiv2D_Error, Subdiv2D_Error_, Subdiv2D_ErrorNoReturn, Subdiv2D_ErrorNoReturn_, Subdiv2D_Assert,
     Subdiv2D_DbgAssert
      */
-    void error(int _code, const std::string& _err, const char* _func, const char* _file, int _line);
+    inline void error(int _code, const std::string& _err, const char* _func, const char* _file, int _line) {
+        std::ostringstream os;
+        os << "Error: " << _err << " in " << ((_func[0] != '\0') ? _func : "unknown function") << ", file " << _file
+           << ", line " << _line;
+
+        std::cerr << os.str() << std::endl;
+#ifdef __ANDROID__
+        std::string msg = os.str();
+        __android_log_print(ANDROID_LOG_ERROR, "subdiv2d::error()", "%s", msg.c_str());
+#endif
+
+#ifdef SUBDIV2D_BREAK_ON_ERROR
+        static volatile int* p = 0;
+        *p = 0;
+#endif
+    }
 
 #ifdef __GNUC__
 #if defined __clang__ || defined __APPLE__
@@ -289,6 +302,9 @@ The macros Subdiv2D_Assert (and Subdiv2D_DbgAssert(expr)) evaluate the specified
 raise an error (see cv::error). The macro Subdiv2D_Assert checks the condition in both Debug and Release
 configurations while Subdiv2D_DbgAssert is only retained in the Debug configuration.
 */
+
+#define SUBDIV2DAUX_CONCAT_EXP(a, b) a##b
+#define SUBDIV2DAUX_CONCAT(a, b) SUBDIV2DAUX_CONCAT_EXP(a,b)
 
 #define SUBDIV2D_VA_NUM_ARGS_HELPER(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
 #define SUBDIV2D_VA_NUM_ARGS(...) SUBDIV2D_VA_NUM_ARGS_HELPER(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
