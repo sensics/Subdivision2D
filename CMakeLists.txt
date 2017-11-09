@@ -22,5 +22,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ###
 add_subdirectory(src)
 
-add_subdirectory(vendor)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+	# We're a root project - OK to test.
+	include(CTest)
+	add_subdirectory(vendor)
+	add_subdirectory(tests)
+endif()
 
