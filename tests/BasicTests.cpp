@@ -28,6 +28,20 @@
 #include "catch.hpp"
 
 using namespace sensics::subdiv2d;
-TEST_CASE("Basic construction of Subdivision2d is successful", "[Subdivision2d]") {
-    GIVEN("No constructor arguments") { REQUIRE_NOTHROW(Subdiv2D()); }
+TEST_CASE("Default constructor behavior", "[Subdivision2d]") {
+    REQUIRE_NOTHROW(Subdiv2D());
+    Subdiv2D subdiv;
+    THEN("Should not be able to insert a point with un-initialized subdivision structure") {
+        REQUIRE_THROWS(subdiv.insert(Point2f(0, 0)));
+    }
+    GIVEN("uninitialized object with initDelauney called on it") {
+        REQUIRE_NOTHROW(subdiv.initDelaunay(Rect(0, 0, 1, 1)));
+        THEN("Should be able to insert a point.") { REQUIRE_NOTHROW(subdiv.insert(Point2f(0, 0))); }
+    }
+}
+TEST_CASE("Constructor from Rect behavior", "[Subdivision2d]") {
+
+    REQUIRE_NOTHROW(Subdiv2D(Rect(0, 0, 1, 1)));
+    Subdiv2D subdiv(Rect(0, 0, 1, 1));
+    THEN("Should be able to insert a point immediately") { REQUIRE_NOTHROW(subdiv.insert(Point2f(0, 0))); }
 }

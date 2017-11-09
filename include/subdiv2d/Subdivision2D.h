@@ -107,7 +107,6 @@ namespace subdiv2d {
          */
         Subdiv2D();
 
-#if 0
         /** @overload
 
         @param rect Rectangle that includes all of the 2D points that are to be added to the subdivision.
@@ -124,7 +123,6 @@ namespace subdiv2d {
 
          */
         void initDelaunay(Rect rect);
-#endif
 
         /** @brief Insert a single point into a Delaunay triangulation.
 

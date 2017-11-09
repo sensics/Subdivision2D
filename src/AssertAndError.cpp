@@ -64,12 +64,11 @@
 // Standard includes
 #include <iostream>
 #include <sstream>
-
-
+#include <stdexcept>
 
 namespace sensics {
 namespace subdiv2d {
-        void error(int _code, const std::string& _err, const char* _func, const char* _file, int _line) {
+    void error(int _code, const std::string& _err, const char* _func, const char* _file, int _line) {
         std::ostringstream os;
         os << "Error: " << _err << " in " << ((_func[0] != '\0') ? _func : "unknown function") << ", file " << _file
            << ", line " << _line;
@@ -84,6 +83,7 @@ namespace subdiv2d {
         static volatile int* p = 0;
         *p = 0;
 #endif
+        throw std::runtime_error(os.str());
     }
 } // namespace subdiv2d
 } // namespace sensics

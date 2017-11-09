@@ -24,6 +24,7 @@ add_subdirectory(src)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 	# We're a root project - OK to test.
+	list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/vendor/catch2")
 	include(CTest)
 	add_subdirectory(vendor)
 	add_subdirectory(tests)
