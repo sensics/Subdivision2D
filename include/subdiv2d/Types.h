@@ -70,25 +70,24 @@ namespace subdiv2d {
     template <typename T> struct Point_ {
         using value_type = T;
         Point_(value_type xVal, value_type yVal) : x(xVal), y(yVal) {}
-        Point_() : x(std::numeric_limits<T>::(max)()), y(std::numeric_limits<T>::(max)()) {}
+        Point_() : x((std::numeric_limits<T>::max)()), y((std::numeric_limits<T>::max)()) {}
 
         value_type x;
         value_type y;
 
-        Point_& operator-=(Point2 const& rhs) {
+        Point_& operator-=(Point_ const& rhs) {
             x -= rhs.x;
             y -= rhs.y;
             return *this;
         }
     };
-    template <typename T> inline Point_<T> operator-(Point2<T> const& lhs, Point2<T> const& rhs) {
+    template <typename T> inline Point_<T> operator-(Point_<T> const& lhs, Point_<T> const& rhs) {
         auto ret = Point_<T>(lhs);
         ret -= rhs;
         return ret;
     }
 
     using Point2f = Point_<float>;
-
 
     /** @brief Template class for specifying the size of an image or rectangle.
 
@@ -103,9 +102,8 @@ namespace subdiv2d {
     typedef Size_<float> Size2f;
     @endcode
     */
-    template<typename _Tp> class Size_
-    {
-    public:
+    template <typename _Tp> class Size_ {
+      public:
         typedef _Tp value_type;
 
         //! various constructors
@@ -114,12 +112,12 @@ namespace subdiv2d {
         Size_(const Size_& sz);
         Size_(const Point_<_Tp>& pt);
 
-        Size_& operator = (const Size_& sz);
+        Size_& operator=(const Size_& sz);
         //! the area (width*height)
         _Tp area() const;
 
         //! conversion of another data type.
-        template<typename _Tp2> operator Size_<_Tp2>() const;
+        template <typename _Tp2> operator Size_<_Tp2>() const;
 
         _Tp width, height; // the width and the height
     };
@@ -179,9 +177,7 @@ namespace subdiv2d {
         Rect_();
         Rect_(_Tp _x, _Tp _y, _Tp _width, _Tp _height);
         Rect_(const Rect_& r);
-#if 0
         Rect_(const Point_<_Tp>& org, const Size_<_Tp>& sz);
-#endif
         Rect_(const Point_<_Tp>& pt1, const Point_<_Tp>& pt2);
 
         Rect_& operator=(const Rect_& r);
@@ -190,10 +186,9 @@ namespace subdiv2d {
         //! the bottom-right corner
         Point_<_Tp> br() const;
 
-#if 0
         //! size (width, height) of the rectangle
         Size_<_Tp> size() const;
-#endif
+
         //! area (width*height) of the rectangle
         _Tp area() const;
 #if 0
@@ -211,124 +206,92 @@ namespace subdiv2d {
     typedef Rect_<double> Rect2d;
     typedef Rect2i Rect;
 
-
     ////////////////////////////////// Size /////////////////////////////////
 
-    template<typename _Tp> inline
-        Size_<_Tp>::Size_()
-        : width(0), height(0) {}
+    template <typename _Tp> inline Size_<_Tp>::Size_() : width(0), height(0) {}
 
-    template<typename _Tp> inline
-        Size_<_Tp>::Size_(_Tp _width, _Tp _height)
-        : width(_width), height(_height) {}
+    template <typename _Tp> inline Size_<_Tp>::Size_(_Tp _width, _Tp _height) : width(_width), height(_height) {}
 
-    template<typename _Tp> inline
-        Size_<_Tp>::Size_(const Size_& sz)
-        : width(sz.width), height(sz.height) {}
+    template <typename _Tp> inline Size_<_Tp>::Size_(const Size_& sz) : width(sz.width), height(sz.height) {}
 
-    template<typename _Tp> inline
-        Size_<_Tp>::Size_(const Point_<_Tp>& pt)
-        : width(pt.x), height(pt.y) {}
+    template <typename _Tp> inline Size_<_Tp>::Size_(const Point_<_Tp>& pt) : width(pt.x), height(pt.y) {}
 
+#if 0
     template<typename _Tp> template<typename _Tp2> inline
         Size_<_Tp>::operator Size_<_Tp2>() const
     {
         return Size_<_Tp2>(saturate_cast<_Tp2>(width), saturate_cast<_Tp2>(height));
     }
+#endif
 
-    template<typename _Tp> inline
-        Size_<_Tp>& Size_<_Tp>::operator = (const Size_<_Tp>& sz)
-    {
-        width = sz.width; height = sz.height;
+    template <typename _Tp> inline Size_<_Tp>& Size_<_Tp>::operator=(const Size_<_Tp>& sz) {
+        width = sz.width;
+        height = sz.height;
         return *this;
     }
 
-    template<typename _Tp> inline
-        _Tp Size_<_Tp>::area() const
-    {
+    template <typename _Tp> inline _Tp Size_<_Tp>::area() const {
         const _Tp result = width * height;
-        CV_DbgAssert(!std::numeric_limits<_Tp>::is_integer
-            || width == 0 || result / width == height); // make sure the result fits in the return value
+        Subdiv2D_DbgAssert(!std::numeric_limits<_Tp>::is_integer || width == 0 ||
+                           result / width == height); // make sure the result fits in the return value
         return result;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp>& operator *= (Size_<_Tp>& a, _Tp b)
-    {
+    template <typename _Tp> static inline Size_<_Tp>& operator*=(Size_<_Tp>& a, _Tp b) {
         a.width *= b;
         a.height *= b;
         return a;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp> operator * (const Size_<_Tp>& a, _Tp b)
-    {
+    template <typename _Tp> static inline Size_<_Tp> operator*(const Size_<_Tp>& a, _Tp b) {
         Size_<_Tp> tmp(a);
         tmp *= b;
         return tmp;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp>& operator /= (Size_<_Tp>& a, _Tp b)
-    {
+    template <typename _Tp> static inline Size_<_Tp>& operator/=(Size_<_Tp>& a, _Tp b) {
         a.width /= b;
         a.height /= b;
         return a;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp> operator / (const Size_<_Tp>& a, _Tp b)
-    {
+    template <typename _Tp> static inline Size_<_Tp> operator/(const Size_<_Tp>& a, _Tp b) {
         Size_<_Tp> tmp(a);
         tmp /= b;
         return tmp;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp>& operator += (Size_<_Tp>& a, const Size_<_Tp>& b)
-    {
+    template <typename _Tp> static inline Size_<_Tp>& operator+=(Size_<_Tp>& a, const Size_<_Tp>& b) {
         a.width += b.width;
         a.height += b.height;
         return a;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp> operator + (const Size_<_Tp>& a, const Size_<_Tp>& b)
-    {
+    template <typename _Tp> static inline Size_<_Tp> operator+(const Size_<_Tp>& a, const Size_<_Tp>& b) {
         Size_<_Tp> tmp(a);
         tmp += b;
         return tmp;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp>& operator -= (Size_<_Tp>& a, const Size_<_Tp>& b)
-    {
+    template <typename _Tp> static inline Size_<_Tp>& operator-=(Size_<_Tp>& a, const Size_<_Tp>& b) {
         a.width -= b.width;
         a.height -= b.height;
         return a;
     }
 
-    template<typename _Tp> static inline
-        Size_<_Tp> operator - (const Size_<_Tp>& a, const Size_<_Tp>& b)
-    {
+    template <typename _Tp> static inline Size_<_Tp> operator-(const Size_<_Tp>& a, const Size_<_Tp>& b) {
         Size_<_Tp> tmp(a);
         tmp -= b;
         return tmp;
     }
 
-    template<typename _Tp> static inline
-        bool operator == (const Size_<_Tp>& a, const Size_<_Tp>& b)
-    {
+    template <typename _Tp> static inline bool operator==(const Size_<_Tp>& a, const Size_<_Tp>& b) {
         return a.width == b.width && a.height == b.height;
     }
 
-    template<typename _Tp> static inline
-        bool operator != (const Size_<_Tp>& a, const Size_<_Tp>& b)
-    {
+    template <typename _Tp> static inline bool operator!=(const Size_<_Tp>& a, const Size_<_Tp>& b) {
         return !(a == b);
     }
-
-
 
     template <typename _Tp> inline Rect_<_Tp>::Rect_() : x(0), y(0), width(0), height(0) {}
 
@@ -361,9 +324,7 @@ namespace subdiv2d {
 
     template <typename _Tp> inline Point_<_Tp> Rect_<_Tp>::br() const { return Point_<_Tp>(x + width, y + height); }
 
-#if 0
     template <typename _Tp> inline Size_<_Tp> Rect_<_Tp>::size() const { return Size_<_Tp>(width, height); }
-#endif
 
     template <typename _Tp> inline _Tp Rect_<_Tp>::area() const {
         const _Tp result = width * height;

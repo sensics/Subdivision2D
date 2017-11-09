@@ -52,8 +52,7 @@
 
 // Internal Includes
 #include "subdiv2d/Subdivision2D.h"
-
-#include "AssertAndError.h"
+#include "subdiv2d/AssertAndError.h"
 
 // Library/third-party includes
 // - none
