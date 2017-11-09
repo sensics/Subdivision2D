@@ -58,9 +58,15 @@
 #ifndef INCLUDED_AssertAndError_h_GUID_DCA9D718_0346_4088_A1AC_7EE0A243A538
 #define INCLUDED_AssertAndError_h_GUID_DCA9D718_0346_4088_A1AC_7EE0A243A538
 
+// Internal Includes
+// - none
+
+// Library/third-party includes
+// - none
+
+// Standard includes
 #include <algorithm>
 #include <climits>
-#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -157,22 +163,7 @@ namespace subdiv2d {
     @see Subdiv2D_Error, Subdiv2D_Error_, Subdiv2D_ErrorNoReturn, Subdiv2D_ErrorNoReturn_, Subdiv2D_Assert,
     Subdiv2D_DbgAssert
      */
-    inline void error(int _code, const std::string& _err, const char* _func, const char* _file, int _line) {
-        std::ostringstream os;
-        os << "Error: " << _err << " in " << ((_func[0] != '\0') ? _func : "unknown function") << ", file " << _file
-           << ", line " << _line;
-
-        std::cerr << os.str() << std::endl;
-#ifdef __ANDROID__
-        std::string msg = os.str();
-        __android_log_print(ANDROID_LOG_ERROR, "subdiv2d::error()", "%s", msg.c_str());
-#endif
-
-#ifdef SUBDIV2D_BREAK_ON_ERROR
-        static volatile int* p = 0;
-        *p = 0;
-#endif
-    }
+    void error(int _code, const std::string& _err, const char* _func, const char* _file, int _line);
 
 #ifdef __GNUC__
 #if defined __clang__ || defined __APPLE__
@@ -304,7 +295,7 @@ configurations while Subdiv2D_DbgAssert is only retained in the Debug configurat
 */
 
 #define SUBDIV2DAUX_CONCAT_EXP(a, b) a##b
-#define SUBDIV2DAUX_CONCAT(a, b) SUBDIV2DAUX_CONCAT_EXP(a,b)
+#define SUBDIV2DAUX_CONCAT(a, b) SUBDIV2DAUX_CONCAT_EXP(a, b)
 
 #define SUBDIV2D_VA_NUM_ARGS_HELPER(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
 #define SUBDIV2D_VA_NUM_ARGS(...) SUBDIV2D_VA_NUM_ARGS_HELPER(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
