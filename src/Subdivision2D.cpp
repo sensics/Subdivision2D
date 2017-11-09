@@ -51,7 +51,7 @@
 //M*/
 
 // Internal Includes
-#include "Subdivision2D.h"
+#include "subdiv2d/Subdivision2D.h"
 
 #include "AssertAndError.h"
 
@@ -59,7 +59,7 @@
 // - none
 
 // Standard includes
-// - none
+#include <cassert>
 
 namespace sensics {
 namespace subdiv2d {

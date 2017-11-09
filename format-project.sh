@@ -13,7 +13,7 @@ run_clang_format_on_input_lines() {
 cd $(dirname $0)
 
 (
-    cd include
+    cd include/subdiv2d
     ls *.h | run_clang_format_on_input_lines
 )
 

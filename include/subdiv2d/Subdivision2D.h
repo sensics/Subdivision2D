@@ -55,18 +55,18 @@
 #ifndef INCLUDED_Subdivision2D_h_GUID_469ED0D3_51F3_4C94_4A97_52C530C16C2A
 #define INCLUDED_Subdivision2D_h_GUID_469ED0D3_51F3_4C94_4A97_52C530C16C2A
 
+// Internal Includes
+#include "Types.h"
+
+// Library/third-party includes
+// - none
+
+// Standard includes
 #include <array>
 #include <vector>
 
 namespace sensics {
 namespace subdiv2d {
-    struct Point2f {
-        Point2f(float xVal, float yVal) : x(xVal), y(yVal) {}
-        Point2f() : x(FLT_MAX), y(FLT_MAX) {}
-        float x;
-        float y;
-    };
-    // using Point2f = std::array<float, 2>;
     /**
     The Subdiv2D class described in this section is used to perform various planar subdivision on
     a set of 2D points (represented as vector of Point2f). OpenCV subdivides a plane into triangles
@@ -181,7 +181,7 @@ namespace subdiv2d {
 
         @returns vertex ID.
          */
-        int findNearest(Point2f pt, Point2f* nearestPt = 0);
+        int findNearest(Point2f pt, Point2f* nearestPt = nullptr);
 
 #if 0
         /** @brief Returns a list of all edges.
