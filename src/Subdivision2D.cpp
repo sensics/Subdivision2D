@@ -625,21 +625,19 @@ namespace subdiv2d {
         return vertex;
     }
 
-#if 0
-    void Subdiv2D::getEdgeList(std::vector<Vec4f>& edgeList) const {
+    void Subdiv2D::getEdgeList(std::vector<Edge>& edgeList) const {
         edgeList.clear();
-
-        for (size_t i = 4; i < qedges.size(); i++) {
+        const auto n = qedges.size();
+        for (size_t i = 4; i < n; ++i) {
             if (qedges[i].isfree())
                 continue;
             if (qedges[i].pt[0] > 0 && qedges[i].pt[2] > 0) {
                 Point2f org = vtx[qedges[i].pt[0]].pt;
                 Point2f dst = vtx[qedges[i].pt[2]].pt;
-                edgeList.push_back(Vec4f(org.x, org.y, dst.x, dst.y));
+                edgeList.push_back(Edge{org, dst});
             }
         }
     }
-#endif
 
     void Subdiv2D::getLeadingEdgeList(std::vector<int>& leadingEdgeList) const {
         leadingEdgeList.clear();
@@ -659,13 +657,12 @@ namespace subdiv2d {
         }
     }
 
-#if 0
-    void Subdiv2D::getTriangleList(std::vector<Vec6f>& triangleList) const {
+    void Subdiv2D::getTriangleList(std::vector<Triangle>& triangleList) const {
         triangleList.clear();
-        int i, total = (int)(qedges.size() * 4);
+        const auto total = static_cast<int>(qedges.size() * 4);
         std::vector<bool> edgemask(total, false);
 
-        for (i = 4; i < total; i += 2) {
+        for (int i = 4; i < total; i += 2) {
             if (edgemask[i])
                 continue;
             Point2f a, b, c;
@@ -678,10 +675,9 @@ namespace subdiv2d {
             edge = getEdge(edge, NEXT_AROUND_LEFT);
             edgeOrg(edge, &c);
             edgemask[edge] = true;
-            triangleList.push_back(Vec6f(a.x, a.y, b.x, b.y, c.x, c.y));
+            triangleList.push_back(Triangle{{a, b, c}});
         }
     }
-#endif
 
     void Subdiv2D::getVoronoiFacetList(const std::vector<int>& idx, std::vector<std::vector<Point2f> >& facetList,
                                        std::vector<Point2f>& facetCenters) {
