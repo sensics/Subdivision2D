@@ -2,6 +2,10 @@
     @brief Implementation file for AssertAndError.h (based on OpenCV core/base.hpp) providing assert and error handling.
 
     @date 2017
+
+    OpenCV web site clarifies that OpenCV is provided under the 3-clause BSD license.
+
+    SPDX-License-Identifier:BSD-3-Clause
 */
 
 // Copyright (C) 2000-2008, Intel Corporation, all rights reserved.

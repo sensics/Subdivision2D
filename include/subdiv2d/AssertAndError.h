@@ -2,6 +2,10 @@
     @brief Header (based on OpenCV core/base.hpp) providing assert and error handling.
 
     @date 2017
+
+    OpenCV web site clarifies that OpenCV is provided under the 3-clause BSD license.
+
+    SPDX-License-Identifier:BSD-3-Clause
 */
 
 // Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
@@ -135,7 +139,7 @@ namespace subdiv2d {
         };
     } // namespace Error
 
-//////////////// static assert /////////////////
+    //////////////// static assert /////////////////
 
 #define Subdiv2D_StaticAssert(condition, reason) static_assert((condition), reason " " #condition)
 
@@ -287,12 +291,12 @@ for example:
 #define Subdiv2D_Error_(code, args)                                                                                    \
     ::sensics::subdiv2d::error(code, ::sensics::subdiv2d::detail::format args, Subdiv2D_Func, __FILE__, __LINE__)
 
-/** @brief Checks a condition at runtime and throws exception if it fails
+    /** @brief Checks a condition at runtime and throws exception if it fails
 
-The macros Subdiv2D_Assert (and Subdiv2D_DbgAssert(expr)) evaluate the specified expression. If it is 0, the macros
-raise an error (see cv::error). The macro Subdiv2D_Assert checks the condition in both Debug and Release
-configurations while Subdiv2D_DbgAssert is only retained in the Debug configuration.
-*/
+    The macros Subdiv2D_Assert (and Subdiv2D_DbgAssert(expr)) evaluate the specified expression. If it is 0, the macros
+    raise an error (see cv::error). The macro Subdiv2D_Assert checks the condition in both Debug and Release
+    configurations while Subdiv2D_DbgAssert is only retained in the Debug configuration.
+    */
 
 #define SUBDIV2DAUX_CONCAT_EXP(a, b) a##b
 #define SUBDIV2DAUX_CONCAT(a, b) SUBDIV2DAUX_CONCAT_EXP(a, b)

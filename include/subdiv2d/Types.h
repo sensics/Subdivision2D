@@ -1,7 +1,11 @@
 /** @file
-    @brief Header containing suppor types. Point2 is written from scratch. Rect_ is based on the OpenCV equivalent.
+    @brief Header containing suppor types. Point_ is written from scratch. Rect_ is based on the OpenCV equivalent.
 
     @date 2017
+
+    OpenCV web site clarifies that OpenCV is provided under the 3-clause BSD license.
+
+    SPDX-License-Identifier:BSD-3-Clause
 */
 
 // Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
