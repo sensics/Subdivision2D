@@ -1,5 +1,5 @@
 /** @file
-    @brief Implementation
+    @brief Tests
 
     @date 2017
 
@@ -24,8 +24,16 @@ TEST_CASE("Default constructor behavior", "[Subdivision2d]") {
     THEN("Should not be able to insert a point with un-initialized subdivision structure") {
         REQUIRE_THROWS(subdiv.insert(Point2f(0, 0)));
     }
+    {
+        auto edges = subdiv.getEdgeList();
+        std::cerr << "Now have " << edges.size() << " edges" << std::endl;
+    }
     GIVEN("uninitialized object with initDelauney called on it") {
         REQUIRE_NOTHROW(subdiv.initDelaunay(Rect(0, 0, 1, 1)));
+        {
+            auto edges = subdiv.getEdgeList();
+            std::cerr << "Now have " << edges.size() << " edges" << std::endl;
+        }
         THEN("Should be able to insert a point.") { REQUIRE_NOTHROW(subdiv.insert(Point2f(0, 0))); }
     }
 }
@@ -33,5 +41,9 @@ TEST_CASE("Constructor from Rect behavior", "[Subdivision2d]") {
 
     REQUIRE_NOTHROW(Subdiv2D(Rect(0, 0, 1, 1)));
     Subdiv2D subdiv(Rect(0, 0, 1, 1));
+    {
+        auto edges = subdiv.getEdgeList();
+        std::cerr << "Now have " << edges.size() << " edges" << std::endl;
+    }
     THEN("Should be able to insert a point immediately") { REQUIRE_NOTHROW(subdiv.insert(Point2f(0, 0))); }
 }

@@ -1,6 +1,7 @@
 # Files in include/subdiv2d: API/public headers
 set(API
 	AssertAndError.h
+	SubdivContainer.h
 	Subdivision2D.h
 	Types.h)
 
