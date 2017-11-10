@@ -339,39 +339,6 @@ namespace subdiv2d {
 
     PtLoc Subdiv2D::locate(Point2f pt, EdgeId& _edge, VertexId& _vertex) {
         auto result = locateSub(pt);
-#if 0
-        int vertex = 0;
-        if (result.locateStatus == PTLOC_INSIDE) {
-            Point2f org_pt, dst_pt;
-            edgeOrg(result.edge, &org_pt);
-            edgeDst(result.edge, &dst_pt);
-
-            double t1 = std::abs(pt.x - org_pt.x);
-            t1 += std::abs(pt.y - org_pt.y);
-            double t2 = std::abs(pt.x - dst_pt.x);
-            t2 += std::abs(pt.y - dst_pt.y);
-            double t3 = std::abs(org_pt.x - dst_pt.x);
-            t3 += std::abs(org_pt.y - dst_pt.y);
-
-            if (t1 < FLT_EPSILON) {
-                result.locateStatus = PTLOC_VERTEX;
-                vertex = edgeOrg(result.edge);
-                result.edge = 0;
-            } else if (t2 < FLT_EPSILON) {
-                result.locateStatus = PTLOC_VERTEX;
-                vertex = edgeDst(result.edge);
-                result.edge = 0;
-            } else if ((t1 < t3 || t2 < t3) && std::abs(triangleArea(pt, org_pt, dst_pt)) < FLT_EPSILON) {
-                result.locateStatus = PTLOC_ON_EDGE;
-                vertex = 0;
-            }
-        }
-
-        if (result.locateStatus == PTLOC_ERROR) {
-            result.edge = 0;
-            vertex = 0;
-        }
-#endif
         locateRefine(pt, result);
 
         _edge = result.getEdge();
