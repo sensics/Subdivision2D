@@ -184,6 +184,9 @@ namespace subdiv2d {
          */
         int findNearest(Point2f pt, Point2f* nearestPt = nullptr);
 
+        /** @brief Gets the number of vertices, including virtual ones. */
+        std::size_t getNumVertices() const { return vtx.size(); }
+
         struct Edge {
             Point2f origin;
             Point2f destination;
@@ -299,6 +302,10 @@ namespace subdiv2d {
          */
         int edgeDst(int edge, Point2f* dstpt = 0) const;
 
+        /** @brief Returns the applicable vertex or vertices (1 if on a vertex, 2 if on an edge, 3 if in a facet) for a
+         * given point */
+        std::vector<int> locateVertices(Point2f const& pt);
+
       protected:
         int newEdge();
         void deleteEdge(int edge);
@@ -312,6 +319,22 @@ namespace subdiv2d {
         void calcVoronoi();
         void clearVoronoi();
         void checkSubdiv() const;
+
+        struct LocateSubResults {
+            int locateStatus = PTLOC_ERROR;
+            int edge = 0;
+            int onext_edge = 0;
+            int dprev_edge = 0;
+            std::vector<int> vertices;
+            std::vector<int> edges;
+            bool refined = false;
+            bool vertexInVertices(int vertex) const {
+                return std::find(vertices.begin(), vertices.end(), vertex) != vertices.end();
+            }
+        };
+
+        LocateSubResults locateSub(Point2f const& pt);
+        void locateRefine(Point2f const& pt, LocateSubResults& result);
 
         struct Vertex {
             Vertex();

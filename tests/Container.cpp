@@ -35,4 +35,7 @@ TEST_CASE("Simple retrieval", "[SubdivContainer]") {
 
     REQUIRE(subdiv.lookup(ZeroZero));
     REQUIRE(1.0 == subdiv.get(ZeroZero));
+
+    SubdivDoubleContainer::Vertices vertices;
+    subdiv.findNearest(Point2f(0.5, 0.5), vertices);
 }

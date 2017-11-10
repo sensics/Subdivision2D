@@ -22,6 +22,7 @@
 // - none
 
 // Standard includes
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -63,9 +64,10 @@ namespace subdiv2d {
         bool findNearest(Point2f const& pt, Vertices& outVertices);
 
       private:
+        static const int NumDummyVertices = 4;
         bool get_(int vertexId, value_type& outVal);
         bool get_(int vertexId, pointer_type outPtr = nullptr);
-        void set_(std::size_t idx, value_type const& val);
+        void set_(int vertexId, value_type const& val);
         bool setFromVertex_(Point2f const& pt, int vertexId, Vertices& outVertices);
         bool setFromEdge_(int edgeId, Vertices& outVertices);
         bool setFromFacet_(Point2f const& pt, int edgeId, Vertices& outVertices);
@@ -73,10 +75,14 @@ namespace subdiv2d {
         std::vector<value_type> associatedValues_;
     };
 
-    template <typename T> inline SubdivContainer<T>::SubdivContainer(Rect bounds) : subdiv_(bounds) {}
+    template <typename T> inline SubdivContainer<T>::SubdivContainer(Rect bounds) : subdiv_(bounds) {
+        std::cout << "Starting with " << subdiv_.getNumVertices() << " vertices in internal structure" << std::endl;
+    }
     template <typename T> inline void SubdivContainer<T>::insert(Point2f const& pt, value_type const& val) {
         auto ptId = subdiv_.insert(pt);
-        set_(static_cast<std::size_t>(ptId), val);
+        std::cout << "Adding vertex ID " << ptId << std::endl;
+        set_(ptId, val);
+        std::cout << "Now have " << subdiv_.getNumVertices() << " vertices in internal structure" << std::endl;
     }
     template <typename T> inline bool SubdivContainer<T>::lookup(Point2f const& pt, value_type& outVal) {
         return lookup(pt, &outVal);
@@ -86,15 +92,7 @@ namespace subdiv2d {
         int vertex = -1;
         const auto ret = subdiv_.locate(pt, edge, vertex);
         if (ret == Subdiv2D::PTLOC_VERTEX) {
-            auto idx = static_cast<std::size_t>(vertex);
-            if (idx >= associatedValues_.size()) {
-                // a vertex we don't possibly have a value for.
-                return false;
-            }
-            if (outPtr) {
-                *outPtr = associatedValues_[idx];
-            }
-            return true;
+            return get_(vertex, outPtr);
         }
         return false;
     }
@@ -106,6 +104,12 @@ namespace subdiv2d {
         return ret;
     }
     template <typename T> inline bool SubdivContainer<T>::findNearest(Point2f const& pt, Vertices& outVertices) {
+        auto vertices = subdiv_.locateVertices(pt);
+        std::cout << "Vertices ";
+        for (auto& v : vertices) {
+            std::cout << " " << v;
+        }
+        std::cout << std::endl;
         int edge;
         int vertex;
         auto locateResult = subdiv_.locate(pt, edge, vertex);
@@ -124,10 +128,10 @@ namespace subdiv2d {
         return get_(vertexId, &outVal);
     }
     template <typename T> inline bool SubdivContainer<T>::get_(int vertexId, pointer_type outPtr) {
-        if (vertexId < 0) {
+        if (vertexId < NumDummyVertices) {
             return false;
         }
-        auto idx = static_cast<std::size_t>(vertex);
+        auto idx = static_cast<std::size_t>(vertexId) - NumDummyVertices;
         if (idx >= associatedValues_.size()) {
             // a vertex we don't possibly have a value for.
             return false;
@@ -137,7 +141,9 @@ namespace subdiv2d {
         }
         return true;
     }
-    template <typename T> inline void SubdivContainer<T>::set_(std::size_t idx, value_type const& val) {
+    template <typename T> inline void SubdivContainer<T>::set_(int vertexId, value_type const& val) {
+        std::size_t idx = static_cast<std::size_t>(vertexId) - NumDummyVertices;
+
         if (associatedValues_.size() <= idx) {
             associatedValues_.resize(idx + 1);
         }
@@ -167,6 +173,11 @@ namespace subdiv2d {
         }
         outVertices = {std::move(org), std::move(dst)};
         return true;
+    }
+    template <typename T>
+    inline bool SubdivContainer<T>::setFromFacet_(Point2f const& pt, int edgeId, Vertices& outVertices) {
+        /// @todo
+        return false;
     }
 } // namespace subdiv2d
 } // namespace sensics

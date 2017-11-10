@@ -62,6 +62,7 @@
 
 // Standard includes
 #include <cassert>
+#include <iostream>
 
 namespace sensics {
 namespace subdiv2d {
@@ -211,6 +212,12 @@ namespace subdiv2d {
         return (cw_area > 0) - (cw_area < 0);
     }
 
+    std::vector<int> Subdiv2D::locateVertices(Point2f const& pt) {
+        auto result = locateSub(pt);
+        locateRefine(pt, result);
+        return std::move(result.vertices);
+    }
+
     int Subdiv2D::newEdge() {
         if (freeQEdge <= 0) {
             qedges.push_back(QuadEdge());
@@ -254,67 +261,13 @@ namespace subdiv2d {
     }
 
     int Subdiv2D::locate(Point2f pt, int& _edge, int& _vertex) {
-
+        auto result = locateSub(pt);
+#if 0
         int vertex = 0;
-
-        int i, maxEdges = (int)(qedges.size() * 4);
-
-        if (qedges.size() < (size_t)4)
-            Subdiv2D_Error(Error::StsError, "Subdivision is empty");
-
-        if (pt.x < topLeft.x || pt.y < topLeft.y || pt.x >= bottomRight.x || pt.y >= bottomRight.y)
-            Subdiv2D_Error(Error::StsOutOfRange, "");
-
-        int edge = recentEdge;
-        Subdiv2D_Assert(edge > 0);
-
-        int location = PTLOC_ERROR;
-
-        int right_of_curr = isRightOf(pt, edge);
-        if (right_of_curr > 0) {
-            edge = symEdge(edge);
-            right_of_curr = -right_of_curr;
-        }
-
-        for (i = 0; i < maxEdges; i++) {
-            int onext_edge = nextEdge(edge);
-            int dprev_edge = getEdge(edge, PREV_AROUND_DST);
-
-            int right_of_onext = isRightOf(pt, onext_edge);
-            int right_of_dprev = isRightOf(pt, dprev_edge);
-
-            if (right_of_dprev > 0) {
-                if (right_of_onext > 0 || (right_of_onext == 0 && right_of_curr == 0)) {
-                    location = PTLOC_INSIDE;
-                    break;
-                } else {
-                    right_of_curr = right_of_onext;
-                    edge = onext_edge;
-                }
-            } else {
-                if (right_of_onext > 0) {
-                    if (right_of_dprev == 0 && right_of_curr == 0) {
-                        location = PTLOC_INSIDE;
-                        break;
-                    } else {
-                        right_of_curr = right_of_dprev;
-                        edge = dprev_edge;
-                    }
-                } else if (right_of_curr == 0 && isRightOf(vtx[edgeDst(onext_edge)].pt, edge) >= 0) {
-                    edge = symEdge(edge);
-                } else {
-                    right_of_curr = right_of_onext;
-                    edge = onext_edge;
-                }
-            }
-        }
-
-        recentEdge = edge;
-
-        if (location == PTLOC_INSIDE) {
+        if (result.locateStatus == PTLOC_INSIDE) {
             Point2f org_pt, dst_pt;
-            edgeOrg(edge, &org_pt);
-            edgeDst(edge, &dst_pt);
+            edgeOrg(result.edge, &org_pt);
+            edgeDst(result.edge, &dst_pt);
 
             double t1 = std::abs(pt.x - org_pt.x);
             t1 += std::abs(pt.y - org_pt.y);
@@ -324,28 +277,34 @@ namespace subdiv2d {
             t3 += std::abs(org_pt.y - dst_pt.y);
 
             if (t1 < FLT_EPSILON) {
-                location = PTLOC_VERTEX;
-                vertex = edgeOrg(edge);
-                edge = 0;
+                result.locateStatus = PTLOC_VERTEX;
+                vertex = edgeOrg(result.edge);
+                result.edge = 0;
             } else if (t2 < FLT_EPSILON) {
-                location = PTLOC_VERTEX;
-                vertex = edgeDst(edge);
-                edge = 0;
+                result.locateStatus = PTLOC_VERTEX;
+                vertex = edgeDst(result.edge);
+                result.edge = 0;
             } else if ((t1 < t3 || t2 < t3) && std::abs(triangleArea(pt, org_pt, dst_pt)) < FLT_EPSILON) {
-                location = PTLOC_ON_EDGE;
+                result.locateStatus = PTLOC_ON_EDGE;
                 vertex = 0;
             }
         }
 
-        if (location == PTLOC_ERROR) {
-            edge = 0;
+        if (result.locateStatus == PTLOC_ERROR) {
+            result.edge = 0;
             vertex = 0;
         }
+#endif
+        locateRefine(pt, result);
 
-        _edge = edge;
-        _vertex = vertex;
+        _edge = result.edge;
+        if (result.vertices.size() == 1) {
+            _vertex = result.vertices.front();
+        } else {
+            _vertex = 0;
+        }
 
-        return location;
+        return result.locateStatus;
     }
 
     inline int isPtInCircle3(Point2f pt, Point2f a, Point2f b, Point2f c) {
@@ -742,6 +701,128 @@ namespace subdiv2d {
                     Subdiv2D_Assert(
                         getEdge(getEdge(getEdge(e, NEXT_AROUND_RIGHT), NEXT_AROUND_RIGHT), NEXT_AROUND_RIGHT) == e);
                 }
+            }
+        }
+    }
+
+    Subdiv2D::LocateSubResults Subdiv2D::locateSub(Point2f const& pt) {
+        if (qedges.size() < 4) {
+            Subdiv2D_Error(Error::StsError, "Subdivision is empty");
+        }
+        if (pt.x < topLeft.x || pt.y < topLeft.y || pt.x >= bottomRight.x || pt.y >= bottomRight.y) {
+            Subdiv2D_Error(Error::StsOutOfRange, "");
+        }
+        const std::size_t maxEdges = qedges.size() * 4;
+
+        LocateSubResults ret;
+        int edge = recentEdge;
+        Subdiv2D_Assert(edge > 0);
+
+        int right_of_curr = isRightOf(pt, edge);
+        if (right_of_curr > 0) {
+            edge = symEdge(edge);
+            right_of_curr = -right_of_curr;
+        }
+
+        for (std::size_t i = 0; i < maxEdges; ++i) {
+            int onext_edge = nextEdge(edge);
+            int dprev_edge = getEdge(edge, PREV_AROUND_DST);
+
+            std::cout << "edge: " << edge << "\t onext_edge: " << onext_edge << "\t dprev_edge: " << dprev_edge
+                      << std::endl;
+
+            int right_of_onext = isRightOf(pt, onext_edge);
+            int right_of_dprev = isRightOf(pt, dprev_edge);
+
+            if (right_of_dprev > 0) {
+                if (right_of_onext > 0 || (right_of_onext == 0 && right_of_curr == 0)) {
+                    ret.locateStatus = PTLOC_INSIDE;
+                    ret.edge = edge;
+                    ret.edges = {edge, dprev_edge};
+                    ret.onext_edge = onext_edge;
+                    ret.dprev_edge = dprev_edge;
+                    break;
+                } else {
+                    right_of_curr = right_of_onext;
+                    edge = onext_edge;
+                }
+            } else {
+                if (right_of_onext > 0) {
+                    if (right_of_dprev == 0 && right_of_curr == 0) {
+                        ret.locateStatus = PTLOC_INSIDE;
+                        ret.edge = edge;
+                        ret.edges = {edge, onext_edge};
+                        ret.onext_edge = onext_edge;
+                        ret.dprev_edge = dprev_edge;
+                        break;
+                    } else {
+                        right_of_curr = right_of_dprev;
+                        edge = dprev_edge;
+                    }
+                } else if (right_of_curr == 0 && isRightOf(vtx[edgeDst(onext_edge)].pt, edge) >= 0) {
+                    edge = symEdge(edge);
+                } else {
+                    right_of_curr = right_of_onext;
+                    edge = onext_edge;
+                }
+            }
+        }
+
+        recentEdge = edge;
+        return ret;
+    }
+
+    static inline float simpleAbsPointDistance(Point2f const& a, Point2f const& b) {
+        // think this is the manhattan distance...
+        auto diff = a - b;
+        return std::abs(diff.x) + std::abs(diff.y);
+    }
+    void Subdiv2D::locateRefine(Point2f const& pt, LocateSubResults& result) {
+        if (result.locateStatus != PTLOC_INSIDE || result.refined) {
+            // no further refinement.
+            return;
+        }
+        result.refined = true;
+
+        Point2f org_pt;
+        auto orgId = edgeOrg(result.edge, &org_pt);
+        auto orgDist = simpleAbsPointDistance(pt, org_pt);
+        Point2f dst_pt;
+        auto dstId = edgeDst(result.edge, &dst_pt);
+        auto dstDist = simpleAbsPointDistance(pt, dst_pt);
+
+        auto edgeDist = simpleAbsPointDistance(org_pt, dst_pt);
+
+        if (orgDist < FLT_EPSILON) {
+            result.locateStatus = PTLOC_VERTEX;
+            result.vertices = {orgId};
+            result.edges.clear();
+            result.edge = 0;
+        } else if (dstDist < FLT_EPSILON) {
+            result.locateStatus = PTLOC_VERTEX;
+            result.vertices = {dstId};
+            result.edges.clear();
+            result.edge = 0;
+        } else if ((orgDist < edgeDist || dstDist < edgeDist) &&
+                   std::abs(triangleArea(pt, org_pt, dst_pt)) < FLT_EPSILON) {
+            result.locateStatus = PTLOC_ON_EDGE;
+            result.edges = {result.edge};
+            result.vertices = {orgId, dstId};
+        } else {
+            // this case means, really inside.
+            result.vertices = {orgId, dstId};
+            // Grab the second edge in the vector.
+            Subdiv2D_Assert(result.edges.size() == 2);
+            auto otherEdge = result.edges[1];
+            auto otherOrg = edgeOrg(otherEdge);
+            auto otherDst = edgeDst(otherEdge);
+            if (!result.vertexInVertices(otherOrg)) {
+                result.vertices.push_back(otherOrg);
+            } else if (!result.vertexInVertices(otherDst)) {
+                result.vertices.push_back(otherDst);
+            } else {
+                Subdiv2D_Error(Error::StsAssert,
+                               "Should never happen - our other edge didn't have a useful other vertex.");
             }
         }
     }
