@@ -726,15 +726,15 @@ namespace subdiv2d {
     }
 
     void Subdiv2D::checkSubdiv() const {
-        int i, j, total = (int)qedges.size();
 
-        for (i = 0; i < total; i++) {
+        const auto total = qedges.size();
+        for (std::size_t i = 0; i < total; i) {
             const QuadEdge& qe = qedges[i];
 
             if (qe.isfree())
                 continue;
 
-            for (j = 0; j < 4; j++) {
+            for (std::size_t j = 0; j < 4; ++j) {
                 int e = (int)(i * 4 + j);
                 int o_next = nextEdge(e);
                 int o_prev = getEdge(e, PREV_AROUND_ORG);
