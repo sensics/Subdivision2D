@@ -170,7 +170,6 @@ namespace subdiv2d {
         Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
         VertexId vidx = qedges[edge >> 2].pt[edge & 3];
         if (orgpt) {
-            Subdiv2D_DbgAssert((size_t)vidx < vtx.size());
             *orgpt = getVertex(vidx);
         }
         return vidx;
@@ -180,7 +179,6 @@ namespace subdiv2d {
         Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
         VertexId vidx = qedges[edge >> 2].pt[(edge + 2) & 3];
         if (dstpt) {
-            Subdiv2D_DbgAssert((size_t)vidx < vtx.size());
             *dstpt = getVertex(vidx);
         }
         return vidx;
