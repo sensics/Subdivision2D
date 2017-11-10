@@ -91,7 +91,7 @@ namespace subdiv2d {
         int edge = -1;
         int vertex = -1;
         const auto ret = subdiv_.locate(pt, edge, vertex);
-        if (ret == Subdiv2D::PTLOC_VERTEX) {
+        if (ret == PtLoc::PTLOC_VERTEX) {
             return get_(vertex, outPtr);
         }
         return false;
@@ -114,11 +114,11 @@ namespace subdiv2d {
         int vertex;
         auto locateResult = subdiv_.locate(pt, edge, vertex);
         switch (locateResult) {
-        case Subdiv2D::PTLOC_INSIDE:
+        case PtLoc::PTLOC_INSIDE:
             return setFromFacet_(pt, edge, outVertices);
-        case Subdiv2D::PTLOC_ON_EDGE:
+        case PtLoc::PTLOC_ON_EDGE:
             return setFromEdge_(edge, outVertices);
-        case Subdiv2D::PTLOC_VERTEX:
+        case PtLoc::PTLOC_VERTEX:
             return setFromVertex_(pt, vertex, outVertices);
         default:
             return false;

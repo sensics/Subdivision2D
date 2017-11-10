@@ -84,10 +84,20 @@ namespace subdiv2d {
             y -= rhs.y;
             return *this;
         }
+        Point_& operator+=(Point_ const& rhs) {
+            x += rhs.x;
+            y += rhs.y;
+            return *this;
+        }
     };
     template <typename T> inline Point_<T> operator-(Point_<T> const& lhs, Point_<T> const& rhs) {
         auto ret = Point_<T>(lhs);
         ret -= rhs;
+        return ret;
+    }
+    template <typename T> inline Point_<T> operator+(Point_<T> const& lhs, Point_<T> const& rhs) {
+        auto ret = Point_<T>(lhs);
+        ret += rhs;
         return ret;
     }
 

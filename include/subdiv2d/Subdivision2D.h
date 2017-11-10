@@ -70,6 +70,49 @@
 
 namespace sensics {
 namespace subdiv2d {
+    /** Subdiv2D point location cases */
+    enum class PtLoc {
+        PTLOC_ERROR = -2,        //!< Point location error
+        PTLOC_OUTSIDE_RECT = -1, //!< Point outside the subdivision bounding rect
+        PTLOC_INSIDE = 0,        //!< Point inside some facet
+        PTLOC_VERTEX = 1,        //!< Point coincides with one of the subdivision vertices
+        PTLOC_ON_EDGE = 2        //!< Point on some edge
+    };
+
+    using VertexId = int;
+    static const VertexId InvalidVertex = 0;
+
+    using EdgeId = int;
+    static const EdgeId InvalidEdge = 0;
+
+    namespace detail {
+
+        struct LocateSubResults {
+            using VertexArray = std::array<VertexId, 3>;
+
+            PtLoc locateStatus = PtLoc::PTLOC_ERROR;
+            bool refined = false;
+
+            EdgeId getEdge() const;
+            bool hasOtherEdge() const;
+            EdgeId getOtherEdge() const;
+            void setEdges(EdgeId e1 = InvalidEdge, EdgeId e2 = InvalidEdge);
+
+            std::size_t numVertices() const;
+            VertexArray const& getVertices() const { return vertices; }
+            void addVertex(VertexId vertex);
+            void setVertices(std::initializer_list<VertexId> const& newVertices);
+            bool isVertexInVertices(VertexId vertex) const;
+
+          private:
+            EdgeId edge = InvalidEdge;
+            EdgeId otherEdge = InvalidEdge;
+            VertexArray vertices = {{InvalidVertex, InvalidVertex, InvalidVertex}};
+        };
+
+        class EdgeIterationHelper;
+    } // namespace detail
+
     /**
     The Subdiv2D class described in this section is used to perform various planar subdivision on
     a set of 2D points (represented as vector of Point2f). OpenCV subdivides a plane into triangles
@@ -84,14 +127,8 @@ namespace subdiv2d {
     */
     class Subdiv2D {
       public:
-        /** Subdiv2D point location cases */
-        enum {
-            PTLOC_ERROR = -2,        //!< Point location error
-            PTLOC_OUTSIDE_RECT = -1, //!< Point outside the subdivision bounding rect
-            PTLOC_INSIDE = 0,        //!< Point inside some facet
-            PTLOC_VERTEX = 1,        //!< Point coincides with one of the subdivision vertices
-            PTLOC_ON_EDGE = 2        //!< Point on some edge
-        };
+        using Point = Point2f;
+        using value_type = Point::value_type;
 
         /** Subdiv2D edge type navigation (see: getEdge()) */
         enum {
@@ -137,7 +174,7 @@ namespace subdiv2d {
 
         @note If the point is outside of the triangulation specified rect a runtime error is raised.
          */
-        int insert(Point2f pt);
+        VertexId insert(Point2f pt);
 
         /** @brief Insert multiple points into a Delaunay triangulation.
 
@@ -168,7 +205,7 @@ namespace subdiv2d {
         -  One of input arguments is invalid. A runtime error is raised or, if silent or "parent" error
            processing mode is selected, CV_PTLOC_ERROR is returned.
          */
-        int locate(Point2f pt, int& edge, int& vertex);
+        PtLoc locate(Point2f pt, EdgeId& edge, VertexId& vertex);
 
         /** @brief Finds the subdivision vertex closest to the given point.
 
@@ -182,9 +219,9 @@ namespace subdiv2d {
 
         @returns vertex ID.
          */
-        int findNearest(Point2f pt, Point2f* nearestPt = nullptr);
+        VertexId findNearest(Point2f pt, Point2f* nearestPt = nullptr);
 
-        /** @brief Gets the number of vertices, including virtual ones. */
+        /** @brief Gets the number of vertices, including virtual ones, dummy ones, and the placeholder. */
         std::size_t getNumVertices() const { return vtx.size(); }
 
         struct Edge {
@@ -211,7 +248,7 @@ namespace subdiv2d {
 
         The function gives one edge ID for each triangle.
          */
-        void getLeadingEdgeList(std::vector<int>& leadingEdgeList) const;
+        void getLeadingEdgeList(std::vector<EdgeId>& leadingEdgeList) const;
 
         using Triangle = std::array<Point2f, 3>;
 
@@ -228,7 +265,7 @@ namespace subdiv2d {
         @param facetCenters Output vector of the Voroni facets center points.
 
          */
-        void getVoronoiFacetList(const std::vector<int>& idx, std::vector<std::vector<Point2f> >& facetList,
+        void getVoronoiFacetList(const std::vector<VertexId>& idx, std::vector<std::vector<Point2f> >& facetList,
                                  std::vector<Point2f>& facetCenters);
 
         /** @brief Returns vertex location from vertex ID.
@@ -238,7 +275,7 @@ namespace subdiv2d {
         @returns vertex (x,y)
 
          */
-        Point2f getVertex(int vertex, int* firstEdge = 0) const;
+        Point2f getVertex(VertexId vertex, EdgeId* firstEdge = 0) const;
 
         /** @brief Returns one of the edges related to the given edge.
 
@@ -258,7 +295,7 @@ namespace subdiv2d {
 
         @returns edge ID related to the input edge.
          */
-        int getEdge(int edge, int nextEdgeType) const;
+        EdgeId getEdge(EdgeId edge, int nextEdgeType) const;
 
         /** @brief Returns next edge around the edge origin.
 
@@ -267,7 +304,7 @@ namespace subdiv2d {
         @returns an integer which is next edge ID around the edge origin: eOnext on the
         picture above if e is the input edge).
          */
-        int nextEdge(int edge) const;
+        EdgeId nextEdge(EdgeId edge) const;
 
         /** @brief Returns another edge of the same quad-edge.
 
@@ -281,8 +318,8 @@ namespace subdiv2d {
 
         @returns one of the edges ID of the same quad-edge as the input edge.
          */
-        int rotateEdge(int edge, int rotate) const;
-        int symEdge(int edge) const;
+        EdgeId rotateEdge(EdgeId edge, int rotate) const;
+        EdgeId symEdge(EdgeId edge) const;
 
         /** @brief Returns the edge origin.
 
@@ -291,7 +328,7 @@ namespace subdiv2d {
 
         @returns vertex ID.
          */
-        int edgeOrg(int edge, Point2f* orgpt = 0) const;
+        VertexId edgeOrg(EdgeId edge, Point2f* orgpt = 0) const;
 
         /** @brief Returns the edge destination.
 
@@ -300,75 +337,67 @@ namespace subdiv2d {
 
         @returns vertex ID.
          */
-        int edgeDst(int edge, Point2f* dstpt = 0) const;
+        VertexId edgeDst(EdgeId edge, Point2f* dstpt = 0) const;
 
         /** @brief Returns the applicable vertex or vertices (1 if on a vertex, 2 if on an edge, 3 if in a facet) for a
          * given point */
-        std::vector<int> locateVertices(Point2f const& pt);
+        std::vector<VertexId> locateVertices(Point2f const& pt);
 
-      protected:
-        int newEdge();
-        void deleteEdge(int edge);
-        int newPoint(Point2f pt, bool isvirtual, int firstEdge = 0);
-        void deletePoint(int vtx);
-        void setEdgePoints(int edge, int orgPt, int dstPt);
-        void splice(int edgeA, int edgeB);
-        int connectEdges(int edgeA, int edgeB);
-        void swapEdges(int edge);
-        int isRightOf(Point2f pt, int edge) const;
+        static constexpr value_type MAX_VAL() { return std::numeric_limits<value_type>::max(); }
+        static constexpr value_type EPSILON() { return std::numeric_limits<value_type>::epsilon(); }
+
+      private:
+        EdgeId newEdge();
+        void deleteEdge(EdgeId edge);
+        VertexId newPoint(Point2f pt, bool isvirtual, EdgeId firstEdge = 0);
+        void deletePoint(VertexId vtx);
+        void setEdgePoints(EdgeId edge, VertexId orgPt, VertexId dstPt);
+        void splice(EdgeId edgeA, EdgeId edgeB);
+        int connectEdges(EdgeId edgeA, EdgeId edgeB);
+        void swapEdges(EdgeId edge);
+        int isRightOf(Point2f pt, EdgeId edge) const;
         void calcVoronoi();
         void clearVoronoi();
         void checkSubdiv() const;
 
-        struct LocateSubResults {
-            int locateStatus = PTLOC_ERROR;
-            int edge = 0;
-            int onext_edge = 0;
-            int dprev_edge = 0;
-            std::vector<int> vertices;
-            std::vector<int> edges;
-            bool refined = false;
-            bool vertexInVertices(int vertex) const {
-                return std::find(vertices.begin(), vertices.end(), vertex) != vertices.end();
-            }
-        };
-
-        LocateSubResults locateSub(Point2f const& pt);
-        void locateRefine(Point2f const& pt, LocateSubResults& result);
+        detail::LocateSubResults locateSub(Point2f const& pt);
+        void locateRefine(Point2f const& pt, detail::LocateSubResults& result);
 
         struct Vertex {
             Vertex();
-            Vertex(Point2f pt, bool _isvirtual, int _firstEdge = 0);
+            Vertex(Point2f pt, bool _isvirtual, EdgeId _firstEdge = 0);
             bool isvirtual() const;
             bool isfree() const;
 
-            int firstEdge;
+            EdgeId firstEdge;
             int type;
             Point2f pt;
         };
 
         struct QuadEdge {
             QuadEdge();
-            QuadEdge(int edgeidx);
+            QuadEdge(EdgeId edgeidx);
             bool isfree() const;
 
             int next[4];
-            int pt[4];
+            VertexId pt[4];
         };
 
         //! All of the vertices
         std::vector<Vertex> vtx;
         //! All of the edges
         std::vector<QuadEdge> qedges;
-        int freeQEdge;
-        int freePoint;
-        bool validGeometry;
+        int freeQEdge = 0;
+        VertexId freePoint = 0;
+        bool validGeometry = false;
 
-        int recentEdge;
+        EdgeId recentEdge = 0;
         //! Top left corner of the bounding rect
         Point2f topLeft;
         //! Bottom right corner of the bounding rect
         Point2f bottomRight;
+
+        friend class detail::EdgeIterationHelper;
     };
 
 } // namespace subdiv2d
