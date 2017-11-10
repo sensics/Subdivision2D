@@ -360,8 +360,9 @@ namespace subdiv2d {
         void clearVoronoi();
         void checkSubdiv() const;
 
+        /** @brief Performs the first, common portion of locate and locateVertices, preserving and returning more data
+         * for the use of the wrapping functions */
         detail::LocateSubResults locateSub(Point2f const& pt);
-        void locateRefine(Point2f const& pt, detail::LocateSubResults& result);
 
         struct Vertex {
             Vertex();
