@@ -815,9 +815,6 @@ namespace subdiv2d {
                 int onext_edge = nextEdge(edge);
                 int dprev_edge = getEdge(edge, PREV_AROUND_DST);
 
-                std::cout << "edge: " << edge << "\t onext_edge: " << onext_edge << "\t dprev_edge: " << dprev_edge
-                          << std::endl;
-
                 int right_of_onext = isRightOf(pt, onext_edge);
                 int right_of_dprev = isRightOf(pt, dprev_edge);
 

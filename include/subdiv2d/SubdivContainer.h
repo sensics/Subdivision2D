@@ -75,14 +75,10 @@ namespace subdiv2d {
         std::vector<value_type> associatedValues_;
     };
 
-    template <typename T> inline SubdivContainer<T>::SubdivContainer(Rect bounds) : subdiv_(bounds) {
-        std::cout << "Starting with " << subdiv_.getNumVertices() << " vertices in internal structure" << std::endl;
-    }
+    template <typename T> inline SubdivContainer<T>::SubdivContainer(Rect bounds) : subdiv_(bounds) {}
     template <typename T> inline void SubdivContainer<T>::insert(Point2f const& pt, value_type const& val) {
         auto ptId = subdiv_.insert(pt);
-        std::cout << "Adding vertex ID " << ptId << std::endl;
         set_(ptId, val);
-        std::cout << "Now have " << subdiv_.getNumVertices() << " vertices in internal structure" << std::endl;
     }
     template <typename T> inline bool SubdivContainer<T>::lookup(Point2f const& pt, value_type& outVal) {
         return lookup(pt, &outVal);
