@@ -275,7 +275,7 @@ namespace subdiv2d {
         @returns vertex (x,y)
 
          */
-        Point2f getVertex(VertexId vertex, EdgeId* firstEdge = 0) const;
+        Point2f getVertex(VertexId vertex, EdgeId* firstEdge = nullptr) const;
 
         /** @brief Returns one of the edges related to the given edge.
 
@@ -328,7 +328,7 @@ namespace subdiv2d {
 
         @returns vertex ID.
          */
-        VertexId edgeOrg(EdgeId edge, Point2f* orgpt = 0) const;
+        VertexId edgeOrg(EdgeId edge, Point2f* orgpt = nullptr) const;
 
         /** @brief Returns the edge destination.
 
@@ -337,7 +337,7 @@ namespace subdiv2d {
 
         @returns vertex ID.
          */
-        VertexId edgeDst(EdgeId edge, Point2f* dstpt = 0) const;
+        VertexId edgeDst(EdgeId edge, Point2f* dstpt = nullptr) const;
 
         /** @brief Returns the applicable vertex or vertices (1 if on a vertex, 2 if on an edge, 3 if in a facet) for a
          * given point */
@@ -366,7 +366,7 @@ namespace subdiv2d {
 
         struct Vertex {
             Vertex();
-            Vertex(Point2f pt, bool _isvirtual, EdgeId _firstEdge = 0);
+            Vertex(Point2f pt, bool _isvirtual, EdgeId _firstEdge = InvalidEdge);
             bool isvirtual() const;
             bool isfree() const;
 
