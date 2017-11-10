@@ -283,14 +283,32 @@ namespace subdiv2d {
         return (cw_area > 0) - (cw_area < 0);
     }
 
-    std::vector<VertexId> Subdiv2D::locateVertices(Point2f const& pt) {
+    VertexArray Subdiv2D::locateVertexIdsArray(Point2f const& pt) {
         auto result = locateSub(pt);
+        return result.getVertices();
+    }
+
+    std::vector<VertexId> Subdiv2D::locateVertexIds(Point2f const& pt) {
         std::vector<VertexId> ret;
-        for (auto v : result.getVertices()) {
-            if (v != InvalidVertex) {
-                ret.push_back(v);
+        for (auto id : locateVertexIdsArray(pt)) {
+            if (id != InvalidVertex) {
+                ret.push_back(id);
             }
         }
+        return ret;
+    }
+
+    void Subdiv2D::locateVertices(Point2f const& pt, std::vector<Point>& outVertices) {
+        outVertices.clear();
+        auto ids = locateVertexIdsArray(pt);
+        for (auto id : ids) {
+            outVertices.push_back(getVertex(id));
+        }
+    }
+
+    std::vector<Subdiv2D::Point> Subdiv2D::locateVertices(Point const& pt) {
+        std::vector<Point> ret;
+        locateVertices(pt, ret);
         return ret;
     }
 
@@ -654,6 +672,14 @@ namespace subdiv2d {
                 edgeList.push_back(Edge{org, dst});
             }
         }
+    }
+
+    /** @brief Returns a list of all edges. */
+
+    std::vector<Subdiv2D::Edge> Subdiv2D::getEdgeList() const {
+        std::vector<Edge> ret;
+        getEdgeList(ret);
+        return ret;
     }
 
     void Subdiv2D::getLeadingEdgeList(std::vector<EdgeId>& leadingEdgeList) const {

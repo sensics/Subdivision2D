@@ -47,3 +47,29 @@ TEST_CASE("Constructor from Rect behavior", "[Subdivision2d]") {
     }
     THEN("Should be able to insert a point immediately") { REQUIRE_NOTHROW(subdiv.insert(Point2f(0, 0))); }
 }
+
+TEST_CASE("Locate vertices", "[Subdivision2d]") {
+
+    Subdiv2D subdiv(Rect(0, 0, 5, 5));
+    subdiv.insert(Point2f(1, 1));
+    subdiv.insert(Point2f(4, 1));
+    subdiv.insert(Point2f(1, 4));
+    THEN("Looking up any of the input points should return one vertex") {
+        REQUIRE(1 == subdiv.locateVertexIds(Point2f(1, 1)).size());
+        REQUIRE(1 == subdiv.locateVertexIds(Point2f(4, 1)).size());
+        REQUIRE(1 == subdiv.locateVertexIds(Point2f(1, 4)).size());
+    }
+    THEN("Looking up a point along an edge should return two vertices") {
+        REQUIRE(2 == subdiv.locateVertexIds(Point2f(1, 2)).size());
+        REQUIRE(2 == subdiv.locateVertexIds(Point2f(2, 1)).size());
+    }
+
+    using Catch::Matchers::VectorContains;
+
+    THEN("Looking up an interior point should return the three given points") {
+        REQUIRE(3 == subdiv.locateVertexIds(Point2f(2, 2)).size());
+        REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(Point2f(1, 1)));
+        REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(Point2f(1, 4)));
+        REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(Point2f(4, 1)));
+    }
+}

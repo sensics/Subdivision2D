@@ -85,10 +85,11 @@ namespace subdiv2d {
     using EdgeId = int;
     static const EdgeId InvalidEdge = 0;
 
+    using VertexArray = std::array<VertexId, 3>;
+
     namespace detail {
 
         struct LocateSubResults {
-            using VertexArray = std::array<VertexId, 3>;
 
             PtLoc locateStatus = PtLoc::PTLOC_ERROR;
             bool refined = false;
@@ -236,11 +237,7 @@ namespace subdiv2d {
         void getEdgeList(std::vector<Edge>& edgeList) const;
 
         /** @brief Returns a list of all edges. */
-        std::vector<Edge> getEdgeList() const {
-            std::vector<Edge> ret;
-            getEdgeList(ret);
-            return ret;
-        }
+        std::vector<Edge> getEdgeList() const;
 
         /** @brief Returns a list of the leading edge ID connected to each triangle.
 
@@ -339,9 +336,21 @@ namespace subdiv2d {
          */
         VertexId edgeDst(EdgeId edge, Point2f* dstpt = nullptr) const;
 
+        /** @brief Returns the applicable vertex or vertices (non-invalid count will be 1 if on a vertex, 2 if on an
+        edge, 3 if in a facet) for a given point */
+        VertexArray locateVertexIdsArray(Point2f const& pt);
+
         /** @brief Returns the applicable vertex or vertices (1 if on a vertex, 2 if on an edge, 3 if in a facet) for a
-         * given point */
-        std::vector<VertexId> locateVertices(Point2f const& pt);
+        given point */
+        std::vector<VertexId> locateVertexIds(Point2f const& pt);
+
+        /** @brief Returns the location of the applicable vertex or vertices (1 if on a vertex, 2 if on an edge, 3 if in
+        a facet) for a given point */
+        void locateVertices(Point2f const& pt, std::vector<Point>& outVertices);
+
+        /** @brief Returns the location of the applicable vertex or vertices (1 if on a vertex, 2 if on an edge, 3 if in
+        a facet) for a given point */
+        std::vector<Point> locateVertices(Point const& pt);
 
         static constexpr value_type MAX_VAL() { return std::numeric_limits<value_type>::max(); }
         static constexpr value_type EPSILON() { return std::numeric_limits<value_type>::epsilon(); }

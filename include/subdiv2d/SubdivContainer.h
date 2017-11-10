@@ -104,7 +104,7 @@ namespace subdiv2d {
         return ret;
     }
     template <typename T> inline bool SubdivContainer<T>::findNearest(Point2f const& pt, Vertices& outVertices) {
-        auto vertices = subdiv_.locateVertices(pt);
+        auto vertices = subdiv_.locateVertexIdsArray(pt);
         std::cout << "Vertices ";
         for (auto& v : vertices) {
             std::cout << " " << v;

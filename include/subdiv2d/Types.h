@@ -68,6 +68,7 @@
 
 // Standard includes
 #include <limits>
+#include <tuple>
 
 namespace sensics {
 namespace subdiv2d {
@@ -99,6 +100,9 @@ namespace subdiv2d {
         auto ret = Point_<T>(lhs);
         ret += rhs;
         return ret;
+    }
+    template <typename T> inline bool operator==(Point_<T> const& lhs, Point_<T> const& rhs) {
+        return std::tie(lhs.x, lhs.y) == std::tie(rhs.x, rhs.y);
     }
 
     using Point2f = Point_<float>;
