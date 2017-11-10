@@ -302,7 +302,9 @@ namespace subdiv2d {
         outVertices.clear();
         auto ids = locateVertexIdsArray(pt);
         for (auto id : ids) {
-            outVertices.push_back(getVertex(id));
+            if (id != InvalidVertex) {
+                outVertices.push_back(getVertex(id));
+            }
         }
     }
 

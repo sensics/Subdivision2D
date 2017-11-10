@@ -67,6 +67,7 @@
 // - none
 
 // Standard includes
+#include <iosfwd>
 #include <limits>
 #include <tuple>
 
@@ -91,18 +92,25 @@ namespace subdiv2d {
             return *this;
         }
     };
-    template <typename T> inline Point_<T> operator-(Point_<T> const& lhs, Point_<T> const& rhs) {
+    template <typename T> static inline Point_<T> operator-(Point_<T> const& lhs, Point_<T> const& rhs) {
         auto ret = Point_<T>(lhs);
         ret -= rhs;
         return ret;
     }
-    template <typename T> inline Point_<T> operator+(Point_<T> const& lhs, Point_<T> const& rhs) {
+    template <typename T> static inline Point_<T> operator+(Point_<T> const& lhs, Point_<T> const& rhs) {
         auto ret = Point_<T>(lhs);
         ret += rhs;
         return ret;
     }
-    template <typename T> inline bool operator==(Point_<T> const& lhs, Point_<T> const& rhs) {
+    template <typename T> static inline bool operator==(Point_<T> const& lhs, Point_<T> const& rhs) {
         return std::tie(lhs.x, lhs.y) == std::tie(rhs.x, rhs.y);
+    }
+    template <typename T> static inline bool operator!=(Point_<T> const& lhs, Point_<T> const& rhs) {
+        return std::tie(lhs.x, lhs.y) != std::tie(rhs.x, rhs.y);
+    }
+    template <typename T> static inline std::ostream& operator<<(std::ostream& os, Point_<T> const& pt) {
+        os << "(" << pt.x << ", " << pt.y << ")";
+        return os;
     }
 
     using Point2f = Point_<float>;

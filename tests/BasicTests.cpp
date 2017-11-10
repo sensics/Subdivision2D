@@ -50,26 +50,50 @@ TEST_CASE("Constructor from Rect behavior", "[Subdivision2d]") {
 
 TEST_CASE("Locate vertices", "[Subdivision2d]") {
 
-    Subdiv2D subdiv(Rect(0, 0, 5, 5));
-    subdiv.insert(Point2f(1, 1));
-    subdiv.insert(Point2f(4, 1));
-    subdiv.insert(Point2f(1, 4));
-    THEN("Looking up any of the input points should return one vertex") {
-        REQUIRE(1 == subdiv.locateVertexIds(Point2f(1, 1)).size());
-        REQUIRE(1 == subdiv.locateVertexIds(Point2f(4, 1)).size());
-        REQUIRE(1 == subdiv.locateVertexIds(Point2f(1, 4)).size());
-    }
-    THEN("Looking up a point along an edge should return two vertices") {
-        REQUIRE(2 == subdiv.locateVertexIds(Point2f(1, 2)).size());
-        REQUIRE(2 == subdiv.locateVertexIds(Point2f(2, 1)).size());
-    }
-
+    using Catch::Matchers::Equals;
     using Catch::Matchers::VectorContains;
+    Subdiv2D subdiv(Rect(0, 0, 5, 5));
+    const auto OneOne = Point2f(1, 1);
+    const auto FourOne = Point2f(4, 1);
+    const auto OneFour = Point2f(1, 4);
+    subdiv.insert(OneOne);
+    subdiv.insert(FourOne);
+    subdiv.insert(OneFour);
+    WHEN("Looking up any of the input points") {
+        THEN("we should get exactly one vertex") {
+            REQUIRE(1 == subdiv.locateVertexIds(OneOne).size());
+            REQUIRE(1 == subdiv.locateVertexIds(FourOne).size());
+            REQUIRE(1 == subdiv.locateVertexIds(OneFour).size());
+        }
+        THEN("we should get the vertex we look up") {
+            REQUIRE_THAT(subdiv.locateVertices(OneOne), VectorContains(OneOne));
+            REQUIRE_THAT(subdiv.locateVertices(FourOne), VectorContains(FourOne));
+            REQUIRE_THAT(subdiv.locateVertices(OneFour), VectorContains(OneFour));
+        }
+    }
 
-    THEN("Looking up an interior point should return the three given points") {
-        REQUIRE(3 == subdiv.locateVertexIds(Point2f(2, 2)).size());
-        REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(Point2f(1, 1)));
-        REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(Point2f(1, 4)));
-        REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(Point2f(4, 1)));
+    WHEN("Looking up a point along an edge") {
+        THEN("we should get two vertices") {
+            REQUIRE(2 == subdiv.locateVertexIds(Point2f(1, 2)).size());
+            REQUIRE(2 == subdiv.locateVertexIds(Point2f(2, 1)).size());
+        }
+        THEN("the vertices returned should be the expected given ones") {
+            // REQUIRE_THAT(subdiv.locateVertices(Point2f(1, 2)), Equals(std::vector<Point2f>({OneOne, OneFour})));
+            REQUIRE_THAT(subdiv.locateVertices(Point2f(1, 2)), VectorContains(OneOne));
+            REQUIRE_THAT(subdiv.locateVertices(Point2f(1, 2)), VectorContains(OneFour));
+
+            // REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 1)), Equals(std::vector<Point2f>({OneOne, FourOne})));
+            REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 1)), VectorContains(OneOne));
+            REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 1)), VectorContains(FourOne));
+        }
+    }
+
+    WHEN("Looking up an interior point") {
+        THEN("we should get three points") { REQUIRE(3 == subdiv.locateVertexIds(Point2f(2, 2)).size()); }
+        THEN("we should get all three given points") {
+            REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(OneOne));
+            REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(FourOne));
+            REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(OneFour));
+        }
     }
 }
