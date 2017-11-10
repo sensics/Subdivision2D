@@ -79,10 +79,12 @@ TEST_CASE("Locate vertices", "[Subdivision2d]") {
         }
         THEN("the vertices returned should be the expected given ones") {
             // REQUIRE_THAT(subdiv.locateVertices(Point2f(1, 2)), Equals(std::vector<Point2f>({OneOne, OneFour})));
+            CAPTURE(subdiv.locateVertices(Point2f(1, 2)));
             REQUIRE_THAT(subdiv.locateVertices(Point2f(1, 2)), VectorContains(OneOne));
             REQUIRE_THAT(subdiv.locateVertices(Point2f(1, 2)), VectorContains(OneFour));
 
             // REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 1)), Equals(std::vector<Point2f>({OneOne, FourOne})));
+            CAPTURE(subdiv.locateVertices(Point2f(2, 1)));
             REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 1)), VectorContains(OneOne));
             REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 1)), VectorContains(FourOne));
         }
@@ -95,5 +97,14 @@ TEST_CASE("Locate vertices", "[Subdivision2d]") {
             REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(FourOne));
             REQUIRE_THAT(subdiv.locateVertices(Point2f(2, 2)), VectorContains(OneFour));
         }
+    }
+
+    WHEN("Looking up an exterior point") {
+        // WARN("Lookup of outside point: " << subdiv.locateVertexIds(Point2f(1, 0)));
+        CAPTURE(subdiv.locateVertexIds(Point2f(1, 0)));
+        // WARN("Lookup of outside point (locations): " << subdiv.locateVertices(Point2f(1, 0)));
+        CAPTURE(subdiv.locateVertices(Point2f(1, 0)));
+        WARN("Expected failure for now because not sure what the values will be");
+        CHECK(false);
     }
 }
