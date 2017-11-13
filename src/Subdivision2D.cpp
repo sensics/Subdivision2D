@@ -324,6 +324,8 @@ namespace subdiv2d {
         return ret;
     }
 
+    bool Subdiv2D::empty() const { return qedges.size() < 4; }
+
     EdgeId Subdiv2D::newEdge() {
         if (!freeQEdge.valid()) {
             qedges.push_back(QuadEdge());

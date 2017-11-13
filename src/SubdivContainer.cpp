@@ -88,6 +88,9 @@ namespace subdiv2d {
     }
 
     VertexValueId SubdivContainerBase::lookup(Point2f const& pt) {
+        if (subdiv_.empty()) {
+            return InvalidVertexValueId;
+        }
         auto edge = InvalidEdge;
         auto vertex = InvalidVertex;
         const auto status = subdiv_.locate(pt, edge, vertex);

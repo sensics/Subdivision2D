@@ -361,6 +361,9 @@ namespace subdiv2d {
         static constexpr value_type MAX_VAL() { return std::numeric_limits<value_type>::max(); }
         static constexpr value_type EPSILON() { return std::numeric_limits<value_type>::epsilon(); }
 
+        /** @brief Is the subdivision empty? */
+        bool empty() const;
+
       private:
         static const int Invalid = 0;
         EdgeId newEdge();
