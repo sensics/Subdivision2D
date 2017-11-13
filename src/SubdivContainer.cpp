@@ -22,7 +22,7 @@
 
 namespace sensics {
 namespace subdiv2d {
-    SubdivContainerBase::SubdivContainerBase(Rect bounds) {}
+    SubdivContainerBase::SubdivContainerBase(Rect bounds) : subdiv_(bounds) {}
 
     VertexStatus SubdivContainerBase::categorizeVertex(VertexId id) {
         if (!id.valid()) {
