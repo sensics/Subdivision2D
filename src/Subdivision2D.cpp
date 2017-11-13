@@ -152,12 +152,10 @@ namespace subdiv2d {
     } // namespace detail
 
     static inline QuadEdgeId getQuadEdgeId(EdgeId edge) {
-        Subdiv2D_DbgAssert(edge.valid());
         return QuadEdgeId(edge.get() >> 2);
     }
 
     static inline EdgeId makeEdgeId(QuadEdgeId qedge) {
-        Subdiv2D_DbgAssert(qedge.valid());
         return EdgeId(qedge.get() << 2);
     }
 
