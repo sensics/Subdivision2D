@@ -19,6 +19,11 @@ cd $(dirname $0)
 
 (
     cd src
+    ls *.h *.cpp | run_clang_format_on_input_lines
+)
+
+(
+    cd tests
     ls *.cpp | run_clang_format_on_input_lines
 )
 
