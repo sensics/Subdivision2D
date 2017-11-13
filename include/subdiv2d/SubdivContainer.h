@@ -64,13 +64,13 @@ namespace subdiv2d {
         bool findNearest(Point2f const& pt, Vertices& outVertices);
 
       private:
+        bool get_(VertexId vertexId, value_type& outVal);
+        bool get_(VertexId vertexId, pointer_type outPtr = nullptr);
+        void set_(VertexId vertexId, value_type const& val);
+        bool setFromVertex_(Point2f const& pt, VertexId vertexId, Vertices& outVertices);
+        bool setFromEdge_(EdgeId edgeId, Vertices& outVertices);
+        bool setFromFacet_(Point2f const& pt, EdgeId edgeId, Vertices& outVertices);
         static const int NumDummyVertices = 4;
-        bool get_(int vertexId, value_type& outVal);
-        bool get_(int vertexId, pointer_type outPtr = nullptr);
-        void set_(int vertexId, value_type const& val);
-        bool setFromVertex_(Point2f const& pt, int vertexId, Vertices& outVertices);
-        bool setFromEdge_(int edgeId, Vertices& outVertices);
-        bool setFromFacet_(Point2f const& pt, int edgeId, Vertices& outVertices);
         Subdiv2D subdiv_;
         std::vector<value_type> associatedValues_;
     };
@@ -120,10 +120,10 @@ namespace subdiv2d {
             return false;
         }
     }
-    template <typename T> inline bool SubdivContainer<T>::get_(int vertexId, value_type& outVal) {
+    template <typename T> inline bool SubdivContainer<T>::get_(VertexId vertexId, value_type& outVal) {
         return get_(vertexId, &outVal);
     }
-    template <typename T> inline bool SubdivContainer<T>::get_(int vertexId, pointer_type outPtr) {
+    template <typename T> inline bool SubdivContainer<T>::get_(VertexId vertexId, pointer_type outPtr) {
         if (vertexId < NumDummyVertices) {
             return false;
         }
@@ -137,7 +137,7 @@ namespace subdiv2d {
         }
         return true;
     }
-    template <typename T> inline void SubdivContainer<T>::set_(int vertexId, value_type const& val) {
+    template <typename T> inline void SubdivContainer<T>::set_(VertexId vertexId, value_type const& val) {
         std::size_t idx = static_cast<std::size_t>(vertexId) - NumDummyVertices;
 
         if (associatedValues_.size() <= idx) {
@@ -146,7 +146,7 @@ namespace subdiv2d {
         associatedValues_[idx] = val;
     }
     template <typename T>
-    inline bool SubdivContainer<T>::setFromVertex_(Point2f const& pt, int vertexId, Vertices& outVertices) {
+    inline bool SubdivContainer<T>::setFromVertex_(Point2f const& pt, VertexId vertexId, Vertices& outVertices) {
 
         Vertex v;
         v.location = pt;
@@ -156,7 +156,7 @@ namespace subdiv2d {
         outVertices = {std::move(v)};
         return true;
     }
-    template <typename T> inline bool SubdivContainer<T>::setFromEdge_(int edgeId, Vertices& outVertices) {
+    template <typename T> inline bool SubdivContainer<T>::setFromEdge_(EdgeId edgeId, Vertices& outVertices) {
         Vertex org;
         int orgId = subdiv_.edgeOrg(edgeId, &org.location);
         if (!get_(orgId, org.value)) {
@@ -171,7 +171,7 @@ namespace subdiv2d {
         return true;
     }
     template <typename T>
-    inline bool SubdivContainer<T>::setFromFacet_(Point2f const& pt, int edgeId, Vertices& outVertices) {
+    inline bool SubdivContainer<T>::setFromFacet_(Point2f const& pt, EdgeId edgeId, Vertices& outVertices) {
         /// @todo
         return false;
     }
