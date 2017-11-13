@@ -32,9 +32,10 @@ add_library(Subdivision2D STATIC
 target_include_directories(Subdivision2D
 	PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/../include"
+	"${CONFIG_HEADER_DIR}"
 	INTERFACE
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>"
-	"$<BUILD_INTERFACE:${CONFIG_HEADER_DIR}/..>")
+	"$<BUILD_INTERFACE:${CONFIG_HEADER_DIR}>")
 if(SUBDIV2D_USE_BOOST)
 	target_include_directories(Subdivision2D
 		PRIVATE "${Boost_INCLUDE_DIR}"
