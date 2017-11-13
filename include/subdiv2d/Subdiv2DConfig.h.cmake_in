@@ -1,0 +1,27 @@
+/** @file
+    @brief Configuration header for subdiv2d
+
+    @date 2017
+
+    @author
+    Sensics, Inc.
+    <http://sensics.com/osvr>
+*/
+
+// Copyright 2017 Sensics, Inc.
+//
+// SPDX-License-Identifier:BSD-3-Clause
+
+#ifndef INCLUDED_Subdiv2DConfig_h_GUID_999E9C03_E0DA_4396_1920_141DF2150E72
+#define INCLUDED_Subdiv2DConfig_h_GUID_999E9C03_E0DA_4396_1920_141DF2150E72
+
+/// Should boost::container::static_vector be used for more efficient returns?
+/// static_vector introduced in boost 1.54, with initializer list support added in 1.57
+#cmakedefine SUBDIV2D_USE_BOOST_STATIC_VECTOR
+
+/// Should boost::container::small_vector be used if possible?
+/// small_vector introduced in boost 1.58
+#cmakedefine SUBDIV2D_USE_BOOST_SMALL_VECTOR
+
+#endif // INCLUDED_Subdiv2DConfig_h_GUID_999E9C03_E0DA_4396_1920_141DF2150E72
+
