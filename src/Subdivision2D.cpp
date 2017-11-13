@@ -151,13 +151,9 @@ namespace subdiv2d {
         EdgeId EdgeIterationHelper::get() const { return EdgeId(i_); }
     } // namespace detail
 
-    static inline QuadEdgeId getQuadEdgeId(EdgeId edge) {
-        return QuadEdgeId(edge.get() >> 2);
-    }
+    static inline QuadEdgeId getQuadEdgeId(EdgeId edge) { return QuadEdgeId(edge.get() >> 2); }
 
-    static inline EdgeId makeEdgeId(QuadEdgeId qedge) {
-        return EdgeId(qedge.get() << 2);
-    }
+    static inline EdgeId makeEdgeId(QuadEdgeId qedge) { return EdgeId(qedge.get() << 2); }
 
     EdgeId Subdiv2D::nextEdge(EdgeId edge) const {
         dbgAssertEdgeInRange(edge);
