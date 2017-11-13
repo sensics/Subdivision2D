@@ -56,13 +56,13 @@ namespace detail {
     /// Right now, using int for Vertex ids, and <= 0 as invalid.
     template <> struct TypeSafeIndexValueTypeTrait<subdiv2d::detail::VertexTag> { using type = int; };
     template <> struct TypeSafeIndexIsValidTrait<subdiv2d::detail::VertexTag> {
-        static constexpr bool get(TypeSafeIndexValueType<subdiv2d::detail::VertexTag> val) { return val <= 0; }
+        static constexpr bool get(TypeSafeIndexValueType<subdiv2d::detail::VertexTag> val) { return val > 0; }
     };
 
     /// Right now, using int for Edge ids, and <= 0 as invalid.
     template <> struct TypeSafeIndexValueTypeTrait<subdiv2d::detail::EdgeTag> { using type = int; };
     template <> struct TypeSafeIndexIsValidTrait<subdiv2d::detail::EdgeTag> {
-        static constexpr bool get(TypeSafeIndexValueType<subdiv2d::detail::EdgeTag> val) { return val <= 0; }
+        static constexpr bool get(TypeSafeIndexValueType<subdiv2d::detail::EdgeTag> val) { return val > 0; }
     };
     /// Right now, using int for QuadEdge ids
     template <> struct TypeSafeIndexValueTypeTrait<subdiv2d::detail::QuadEdgeTag> { using type = int; };
