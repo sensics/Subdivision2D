@@ -1,9 +1,13 @@
 # Files in include/subdiv2d: API/public headers
 set(API
 	AssertAndError.h
+	FixedMaxSizeArray.h
+	IdTypes.h
 	SubdivContainer.h
 	Subdivision2D.h
-	Types.h)
+	Types.h
+	TypeSafeIndex.h
+	TypeSafeIndexOutput.h)
 
 # Files in src: implementation and private headers
 set(SOURCES

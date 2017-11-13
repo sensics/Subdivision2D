@@ -108,3 +108,12 @@ TEST_CASE("Locate vertices", "[Subdivision2d]") {
         CHECK(false);
     }
 }
+
+#if 0
+/// see https://github.com/catchorg/Catch2/issues/1092
+TEST_CASE("Bug repro") {
+    using Catch::Matchers::VectorContains;
+    std::vector<std::uint16_t> myVec = { 1, 2, 3 };
+    REQUIRE_THAT(myVec, VectorContains(std::uint16_t(1)) && VectorContains(std::uint16_t(2)));
+}
+#endif

@@ -60,6 +60,7 @@
 
 // Internal Includes
 #include "Types.h"
+#include "IdTypes.h"
 
 // Library/third-party includes
 // - none
@@ -78,13 +79,13 @@ namespace subdiv2d {
         PTLOC_VERTEX = 1,        //!< Point coincides with one of the subdivision vertices
         PTLOC_ON_EDGE = 2        //!< Point on some edge
     };
-
+#if 0
     using VertexId = int;
     static const VertexId InvalidVertex = 0;
 
     using EdgeId = int;
     static const EdgeId InvalidEdge = 0;
-
+#endif
     using VertexArray = std::array<VertexId, 3>;
 
     namespace detail {
