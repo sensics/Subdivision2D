@@ -86,6 +86,7 @@ namespace subdiv2d {
     static const EdgeId InvalidEdge = EdgeId();
 
     using QuadEdgeId = ::sensics::detail::TypeSafeIndex<detail::QuadEdgeTag>;
+    static const QuadEdgeId InvalidQuadEdge = QuadEdgeId();
 
     using VertexValueId = ::sensics::detail::TypeSafeIndex<detail::VertexValueTag>;
     static const VertexValueId InvalidVertexValueId = VertexValueId();

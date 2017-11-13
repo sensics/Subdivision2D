@@ -423,7 +423,7 @@ namespace subdiv2d {
         std::vector<Vertex> vtx;
         //! All of the edges
         std::vector<QuadEdge> qedges;
-        QuadEdgeId freeQEdge = QuadEdgeId(0);
+        QuadEdgeId freeQEdge = InvalidQuadEdge;
         VertexId freePoint = InvalidVertex;
         bool validGeometry = false;
 

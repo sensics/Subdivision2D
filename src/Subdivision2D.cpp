@@ -493,7 +493,7 @@ namespace subdiv2d {
         vtx.push_back(Vertex());
         qedges.push_back(QuadEdge());
 
-        freeQEdge = QuadEdgeId();
+        freeQEdge = InvalidQuadEdge;
         freePoint = InvalidVertex;
 
         // Vertex 1: top, way past the right edge.
