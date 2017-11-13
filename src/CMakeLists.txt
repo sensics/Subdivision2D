@@ -8,6 +8,7 @@ set(API
 # Files in src: implementation and private headers
 set(SOURCES
 	AssertAndError.cpp
+	SubdivContainer.cpp
 	Subdivision2D.cpp)
 
 # Produce full paths to API headers.

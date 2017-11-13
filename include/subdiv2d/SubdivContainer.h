@@ -28,10 +28,48 @@
 
 namespace sensics {
 namespace subdiv2d {
-    template <typename T> class SubdivContainer {
+    enum class VertexStatus {
+        /// Invalid/null vertex
+        /// Neither value nor location.
+        /// Sometimes used for padding so we can use a fixed-size container instead of a std::vector when we know a max
+        /// return size.
+        Unpopulated,
+        /// One of the initial dummy vertices added implicitly to form an outer triangle.
+        /// These vertices have locations (out of bounds, but known), but no values associated.
+        OuterBoundingVertex,
+        /// A non-dummy vertex - may still be a "virtual" vertex however (?)
+        /// These are the only vertices that may have associated values.
+        AdditionalVertex
+    };
+    struct ContainerVertexBase {
+        VertexStatus status = VertexStatus::Unpopulated;
+        VertexId id = InvalidVertex;
+        Point2f location;
+    };
+    template <typename T> struct ContainerVertexValue : ContainerVertexBase {
+        using value_type = T;
+        value_type value;
+    };
+
+    class SubdivContainerBase {
+      public:
+        explicit SubdivContainerBase(Rect bounds);
+
+      protected:
+        VertexStatus categorizeVertex(VertexId id);
+
+      private:
+        static const int NumDummyVertices = 4;
+        Subdiv2D subdiv_;
+    };
+
+    template <typename T> class SubdivContainer : public SubdivContainerBase {
       public:
         using value_type = T;
         using pointer_type = T*;
+        using Vertex = ContainerVertexValue<value_type>;
+        using Vertices = std::vector<Vertex>;
+
         explicit SubdivContainer(Rect bounds);
 
         /// Insert a new point into the subdivision, along with its associated value. If it is outside the bounds, a
@@ -51,12 +89,6 @@ namespace subdiv2d {
         /// error.
         value_type get(Point2f const& pt);
 
-        struct Vertex {
-            Point2f location;
-            value_type value;
-        };
-        using Vertices = std::vector<Vertex>;
-
         /// If the point is a vertex in the subdivision, return just the point and its value in outVertices.
         /// If the point is on an edge, return the vertices and values at either end of the edge.
         /// If the point is in some facet, return the three vertices and values of that facet.
@@ -70,8 +102,6 @@ namespace subdiv2d {
         bool setFromVertex_(Point2f const& pt, VertexId vertexId, Vertices& outVertices);
         bool setFromEdge_(EdgeId edgeId, Vertices& outVertices);
         bool setFromFacet_(Point2f const& pt, EdgeId edgeId, Vertices& outVertices);
-        static const int NumDummyVertices = 4;
-        Subdiv2D subdiv_;
         std::vector<value_type> associatedValues_;
     };
 
