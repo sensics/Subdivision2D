@@ -22,15 +22,21 @@
 // - none
 
 // Standard includes
-// - none
+#include <limits>
 
 namespace sensics {
 
 namespace subdiv2d {
     namespace detail {
+        /// Used by Subdivision2D
         struct VertexTag;
+        /// Used by Subdivision2D
         struct EdgeTag;
+        /// Used by Subdivision2D
         struct QuadEdgeTag;
+
+        /// Used by SubdivContainer.
+        struct VertexValueTag;
     } // namespace detail
 } // namespace subdiv2d
 
@@ -58,18 +64,31 @@ namespace detail {
     template <> struct TypeSafeIndexIsValidTrait<subdiv2d::detail::EdgeTag> {
         static constexpr bool get(TypeSafeIndexValueType<subdiv2d::detail::EdgeTag> val) { return val <= 0; }
     };
-    /// Right now, using int for QuadEdge ids, and <= 0 as invalid.
+    /// Right now, using int for QuadEdge ids
     template <> struct TypeSafeIndexValueTypeTrait<subdiv2d::detail::QuadEdgeTag> { using type = int; };
 
+    template <> struct TypeSafeIndexNameTrait<subdiv2d::detail::VertexValueTag> {
+        static constexpr const char* get() { return "VertexValueId"; }
+    };
+    /// Using a max value for this unsigned type as its invalid value.
+    template <> struct TypeSafeIndexInitValueTrait<subdiv2d::detail::VertexValueTag> {
+        static constexpr TypeSafeIndexValueType<subdiv2d::detail::VertexValueTag> get() {
+            return std::numeric_limits<TypeSafeIndexValueType<subdiv2d::detail::VertexValueTag>>::max();
+        }
+    };
 } // namespace detail
 
 namespace subdiv2d {
     using VertexId = ::sensics::detail::TypeSafeIndex<detail::VertexTag>;
+    static const VertexId InvalidVertex = VertexId();
+
     using EdgeId = ::sensics::detail::TypeSafeIndex<detail::EdgeTag>;
+    static const EdgeId InvalidEdge = EdgeId();
+
     using QuadEdgeId = ::sensics::detail::TypeSafeIndex<detail::QuadEdgeTag>;
 
-    static const VertexId InvalidVertex = VertexId();
-    static const EdgeId InvalidEdge = EdgeId();
+    using VertexValueId = ::sensics::detail::TypeSafeIndex<detail::VertexValueTag>;
+    static const VertexValueId InvalidVertexValueId = VertexValueId();
 } // namespace subdiv2d
 
 } // namespace sensics

@@ -15,18 +15,19 @@
 #define INCLUDED_FixedMaxSizeArray_h_GUID_3B5F9209_0B80_4A91_B0D4_5CCAF36EF73A
 
 // Internal Includes
-#include <subdiv2d/Subdiv2DConfig.h>
+#include "Subdiv2DConfig.h"
 
-// Library/third-party includes
-// - none
+#ifdef SUBDIV2D_USE_BOOST_STATIC_VECTOR
 
-// Standard includes
-// - none
-
+#include <boost/container/static_vector.hpp>
 namespace sensics {
-    namespace subdiv2d {
-
-    } // namespace subdiv2d
+namespace subdiv2d {
+    template <typename T, std::size_t MaxSize> using MaxSizeVector = boost::container::static_vector<T, MaxSize>;
+} // namespace subdiv2d
 } // namespace sensics
-#endif // INCLUDED_FixedMaxSizeArray_h_GUID_3B5F9209_0B80_4A91_B0D4_5CCAF36EF73A
 
+#else
+#error "Haven't written antyhing on this path yet sorry!"
+#endif
+
+#endif // INCLUDED_FixedMaxSizeArray_h_GUID_3B5F9209_0B80_4A91_B0D4_5CCAF36EF73A
