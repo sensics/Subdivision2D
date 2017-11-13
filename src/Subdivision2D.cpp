@@ -808,7 +808,9 @@ namespace subdiv2d {
     }
 
     void Subdiv2D::dbgAssertVertexInRange(VertexId vertex) const {
+#if 0
         Subdiv2D_DbgAssert(vertex.valid());
+#endif
         Subdiv2D_DbgAssert(static_cast<size_t>(vertex.get()) < vtx.size());
     }
 
