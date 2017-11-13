@@ -106,6 +106,9 @@ namespace detail {
         /// Get contained value, whether or not it is valid
         value_type get() const { return val_; }
 
+        /// Get contained value, whether or not it is valid
+        value_type value() const { return val_; }
+
       private:
         value_type val_ = getTypeSafeIndexInitValue<Tag>();
     };
@@ -129,7 +132,7 @@ namespace detail {
                 return false;
             }
             // Now compare the values: they're both valid by now.
-            return lhs.value() == rhs.value();
+            return lhs.get() == rhs.get();
         }
     };
     // Implementation of fast equality.
@@ -137,7 +140,7 @@ namespace detail {
         using type = TypeSafeIndex<Tag>;
         static bool get(type const& lhs, type const& rhs) {
             /// if there's only one invalid value, this handles all the cases in one comparison.
-            return lhs.value() == rhs.value();
+            return lhs.get() == rhs.get();
         }
     };
     template <typename Tag>
