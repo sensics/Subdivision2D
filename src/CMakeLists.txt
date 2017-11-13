@@ -13,7 +13,8 @@ set(API
 set(SOURCES
 	AssertAndError.cpp
 	SubdivContainer.cpp
-	Subdivision2D.cpp)
+	Subdivision2D.cpp
+	TypeSafeIndexIterable.h)
 
 # Produce full paths to API headers.
 set(FULLAPI "${CONFIG_HEADER}")

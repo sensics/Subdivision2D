@@ -30,6 +30,7 @@ namespace subdiv2d {
     namespace detail {
         struct VertexTag;
         struct EdgeTag;
+        struct QuadEdgeTag;
     } // namespace detail
 } // namespace subdiv2d
 
@@ -40,6 +41,10 @@ namespace detail {
 
     template <> struct TypeSafeIndexNameTrait<subdiv2d::detail::EdgeTag> {
         static constexpr const char* get() { return "EdgeId"; }
+    };
+
+    template <> struct TypeSafeIndexNameTrait<subdiv2d::detail::QuadEdgeTag> {
+        static constexpr const char* get() { return "QuadEdgeId"; }
     };
 
     /// Right now, using int for Vertex ids, and <= 0 as invalid.
@@ -53,11 +58,15 @@ namespace detail {
     template <> struct TypeSafeIndexIsValidTrait<subdiv2d::detail::EdgeTag> {
         static constexpr bool get(TypeSafeIndexValueType<subdiv2d::detail::EdgeTag> val) { return val <= 0; }
     };
+    /// Right now, using int for QuadEdge ids, and <= 0 as invalid.
+    template <> struct TypeSafeIndexValueTypeTrait<subdiv2d::detail::QuadEdgeTag> { using type = int; };
+
 } // namespace detail
 
 namespace subdiv2d {
     using VertexId = ::sensics::detail::TypeSafeIndex<detail::VertexTag>;
-    using EdgeId = ::sensics::detail::TypeSafeIndex<detail::VertexTag>;
+    using EdgeId = ::sensics::detail::TypeSafeIndex<detail::EdgeTag>;
+    using QuadEdgeId = ::sensics::detail::TypeSafeIndex<detail::QuadEdgeTag>;
 
     static const VertexId InvalidVertex = VertexId();
     static const EdgeId InvalidEdge = EdgeId();

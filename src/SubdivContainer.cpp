@@ -25,10 +25,10 @@ namespace subdiv2d {
     SubdivContainerBase::SubdivContainerBase(Rect bounds) {}
 
     VertexStatus SubdivContainerBase::categorizeVertex(VertexId id) {
-        if (id <= InvalidVertex) {
+        if (!id.valid()) {
             return VertexStatus::Unpopulated;
         }
-        if (id < NumDummyVertices) {
+        if (id.get() < NumDummyVertices) {
             return VertexStatus::OuterBoundingVertex;
         }
         return VertexStatus::AdditionalVertex;

@@ -59,8 +59,8 @@
 #define INCLUDED_Subdivision2D_h_GUID_469ED0D3_51F3_4C94_4A97_52C530C16C2A
 
 // Internal Includes
-#include "Types.h"
 #include "IdTypes.h"
+#include "Types.h"
 
 // Library/third-party includes
 // - none
@@ -357,18 +357,23 @@ namespace subdiv2d {
         static constexpr value_type EPSILON() { return std::numeric_limits<value_type>::epsilon(); }
 
       private:
+        static const int Invalid = 0;
         EdgeId newEdge();
         void deleteEdge(EdgeId edge);
-        VertexId newPoint(Point2f pt, bool isvirtual, EdgeId firstEdge = 0);
+        VertexId newPoint(Point2f pt, bool isvirtual, EdgeId firstEdge = InvalidEdge);
         void deletePoint(VertexId vtx);
         void setEdgePoints(EdgeId edge, VertexId orgPt, VertexId dstPt);
         void splice(EdgeId edgeA, EdgeId edgeB);
-        int connectEdges(EdgeId edgeA, EdgeId edgeB);
+        EdgeId connectEdges(EdgeId edgeA, EdgeId edgeB);
         void swapEdges(EdgeId edge);
         int isRightOf(Point2f pt, EdgeId edge) const;
         void calcVoronoi();
         void clearVoronoi();
         void checkSubdiv() const;
+        std::size_t getNumQuadEdges() const;
+        std::size_t getMaxNumEdges() const;
+        void dbgAssertEdgeInRange(EdgeId edge) const;
+        void dbgAssertVertexInRange(VertexId vertex) const;
 
         /** @brief Performs the first, common portion of locate and locateVertices, preserving and returning more data
          * for the use of the wrapping functions */
@@ -380,6 +385,7 @@ namespace subdiv2d {
             bool isvirtual() const;
             bool isfree() const;
 
+            /// @todo sometimes this is a vertex? argh...
             EdgeId firstEdge;
             int type;
             Point2f pt;
@@ -390,19 +396,33 @@ namespace subdiv2d {
             QuadEdge(EdgeId edgeidx);
             bool isfree() const;
 
+            /// @todo Some values are EdgeId, some are QuadEdgeId. Thus, we lose type safety here.
             int next[4];
             VertexId pt[4];
+
+            VertexId origin() const { return pt[0]; }
+            VertexId& origin() { return pt[0]; }
+            VertexId dest() const { return pt[2]; }
+            VertexId& dest() { return pt[2]; }
         };
+
+        QuadEdge& getQuadEdge(EdgeId edge);
+        QuadEdge const& getQuadEdge(EdgeId edge) const;
+        QuadEdge& getQuadEdge(QuadEdgeId qedge);
+        QuadEdge const& getQuadEdge(QuadEdgeId qedge) const;
+        Vertex& getVertexInternal(VertexId vertex);
+
+        Vertex const& getVertexInternal(VertexId vertex) const;
 
         //! All of the vertices
         std::vector<Vertex> vtx;
         //! All of the edges
         std::vector<QuadEdge> qedges;
-        int freeQEdge = 0;
-        VertexId freePoint = 0;
+        QuadEdgeId freeQEdge = QuadEdgeId(0);
+        VertexId freePoint = InvalidVertex;
         bool validGeometry = false;
 
-        EdgeId recentEdge = 0;
+        EdgeId recentEdge = InvalidEdge;
         //! Top left corner of the bounding rect
         Point2f topLeft;
         //! Bottom right corner of the bounding rect

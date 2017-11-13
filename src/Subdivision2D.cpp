@@ -146,29 +146,41 @@ namespace subdiv2d {
             return *this;
         }
 
-        void EdgeIterationHelper::markVisited(EdgeId edge) { edgemask_[edge] = true; }
+        void EdgeIterationHelper::markVisited(EdgeId edge) { edgemask_[edge.get()] = true; }
 
         EdgeId EdgeIterationHelper::get() const { return EdgeId(i_); }
     } // namespace detail
 
-    EdgeId Subdiv2D::nextEdge(EdgeId edge) const {
-        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
-        return qedges[edge >> 2].next[edge & 3];
+    static inline QuadEdgeId getQuadEdgeId(EdgeId edge) {
+        Subdiv2D_DbgAssert(edge.valid());
+        return QuadEdgeId(edge.get() >> 2);
     }
 
-    EdgeId Subdiv2D::rotateEdge(EdgeId edge, int rotate) const { return (edge & ~3) + ((edge + rotate) & 3); }
+    static inline EdgeId makeEdgeId(QuadEdgeId qedge) {
+        Subdiv2D_DbgAssert(qedge.valid());
+        return EdgeId(qedge.get() << 2);
+    }
 
-    EdgeId Subdiv2D::symEdge(EdgeId edge) const { return edge ^ 2; }
+    EdgeId Subdiv2D::nextEdge(EdgeId edge) const {
+        dbgAssertEdgeInRange(edge);
+        return EdgeId(getQuadEdge(edge).next[edge.get() & 3]);
+    }
+
+    EdgeId Subdiv2D::rotateEdge(EdgeId edge, int rotate) const {
+        return EdgeId((edge.get() & ~3) + ((edge.get() + rotate) & 3));
+    }
+
+    EdgeId Subdiv2D::symEdge(EdgeId edge) const { return EdgeId(edge.get() ^ 2); }
 
     EdgeId Subdiv2D::getEdge(EdgeId edge, int nextEdgeType) const {
-        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
-        edge = qedges[edge >> 2].next[(edge + nextEdgeType) & 3];
-        return (edge & ~3) + ((edge + (nextEdgeType >> 4)) & 3);
+        dbgAssertEdgeInRange(edge);
+        auto e = getQuadEdge(edge).next[(edge.get() + nextEdgeType) & 3];
+        return EdgeId((e & ~3) + ((e + (nextEdgeType >> 4)) & 3));
     }
 
     VertexId Subdiv2D::edgeOrg(EdgeId edge, Point2f* orgpt) const {
-        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
-        VertexId vidx = qedges[edge >> 2].pt[edge & 3];
+        dbgAssertEdgeInRange(edge);
+        VertexId vidx = getQuadEdge(edge).pt[edge.get() & 3];
         if (orgpt) {
             *orgpt = getVertex(vidx);
         }
@@ -176,8 +188,8 @@ namespace subdiv2d {
     }
 
     VertexId Subdiv2D::edgeDst(EdgeId edge, Point2f* dstpt) const {
-        Subdiv2D_DbgAssert((size_t)(edge >> 2) < qedges.size());
-        VertexId vidx = qedges[edge >> 2].pt[(edge + 2) & 3];
+        dbgAssertEdgeInRange(edge);
+        VertexId vidx = getQuadEdge(edge).pt[(edge.get() + 2) & 3];
         if (dstpt) {
             *dstpt = getVertex(vidx);
         }
@@ -185,11 +197,11 @@ namespace subdiv2d {
     }
 
     Point2f Subdiv2D::getVertex(VertexId vertex, EdgeId* firstEdge) const {
-        Subdiv2D_DbgAssert((size_t)vertex < vtx.size());
+        dbgAssertVertexInRange(vertex);
         if (firstEdge) {
-            *firstEdge = vtx[vertex].firstEdge;
+            *firstEdge = vtx[vertex.get()].firstEdge;
         }
-        return vtx[vertex].pt;
+        return vtx[vertex.get()].pt;
     }
 
     Subdiv2D::Subdiv2D() {}
@@ -197,21 +209,21 @@ namespace subdiv2d {
     Subdiv2D::Subdiv2D(Rect rect) { initDelaunay(rect); }
 
     Subdiv2D::QuadEdge::QuadEdge() {
-        next[0] = next[1] = next[2] = next[3] = InvalidEdge;
+        next[0] = next[1] = next[2] = next[3] = Invalid;
         pt[0] = pt[1] = pt[2] = pt[3] = InvalidVertex;
     }
 
     Subdiv2D::QuadEdge::QuadEdge(EdgeId edgeidx) {
-        Subdiv2D_DbgAssert((edgeidx & 3) == 0);
-        next[0] = edgeidx;
-        next[1] = edgeidx + 3;
-        next[2] = edgeidx + 2;
-        next[3] = edgeidx + 1;
+        Subdiv2D_DbgAssert((edgeidx.get() & 3) == 0);
+        next[0] = edgeidx.get();
+        next[1] = (edgeidx.get() + 3);
+        next[2] = (edgeidx.get() + 2);
+        next[3] = (edgeidx.get() + 1);
 
         pt[0] = pt[1] = pt[2] = pt[3] = InvalidVertex;
     }
 
-    bool Subdiv2D::QuadEdge::isfree() const { return next[0] <= InvalidEdge; }
+    bool Subdiv2D::QuadEdge::isfree() const { return next[0] != Invalid; }
 
     Subdiv2D::Vertex::Vertex() {
         firstEdge = InvalidEdge;
@@ -229,21 +241,21 @@ namespace subdiv2d {
     bool Subdiv2D::Vertex::isfree() const { return type < 0; }
 
     void Subdiv2D::splice(EdgeId edgeA, EdgeId edgeB) {
-        auto& a_next = qedges[edgeA >> 2].next[edgeA & 3];
-        auto& b_next = qedges[edgeB >> 2].next[edgeB & 3];
-        auto a_rot = rotateEdge(a_next, 1);
-        auto b_rot = rotateEdge(b_next, 1);
-        auto& a_rot_next = qedges[a_rot >> 2].next[a_rot & 3];
-        auto& b_rot_next = qedges[b_rot >> 2].next[b_rot & 3];
+        auto& a_next = getQuadEdge(edgeA).next[edgeA.get() & 3];
+        auto& b_next = getQuadEdge(edgeB).next[edgeB.get() & 3];
+        auto a_rot = rotateEdge(EdgeId(a_next), 1);
+        auto b_rot = rotateEdge(EdgeId(b_next), 1);
+        auto& a_rot_next = getQuadEdge(a_rot).next[a_rot.get() & 3];
+        auto& b_rot_next = getQuadEdge(b_rot).next[b_rot.get() & 3];
         std::swap(a_next, b_next);
         std::swap(a_rot_next, b_rot_next);
     }
 
     void Subdiv2D::setEdgePoints(EdgeId edge, VertexId orgPt, VertexId dstPt) {
-        qedges[edge >> 2].pt[edge & 3] = orgPt;
-        qedges[edge >> 2].pt[(edge + 2) & 3] = dstPt;
-        vtx[orgPt].firstEdge = edge;
-        vtx[dstPt].firstEdge = edge ^ 2;
+        getQuadEdge(edge).pt[edge.get() & 3] = orgPt;
+        getQuadEdge(edge).pt[(edge.get() + 2) & 3] = dstPt;
+        vtx[orgPt.get()].firstEdge = edge;
+        vtx[dstPt.get()].firstEdge = EdgeId(edge.get() ^ 2);
     }
 
     EdgeId Subdiv2D::connectEdges(EdgeId edgeA, EdgeId edgeB) {
@@ -315,44 +327,44 @@ namespace subdiv2d {
     }
 
     EdgeId Subdiv2D::newEdge() {
-        if (freeQEdge <= 0) {
+        if (!freeQEdge.valid()) {
             qedges.push_back(QuadEdge());
-            freeQEdge = (int)(qedges.size() - 1);
+            freeQEdge = QuadEdgeId(qedges.size() - 1);
         }
-        EdgeId edge = freeQEdge * 4;
-        freeQEdge = qedges[edge >> 2].next[1];
-        qedges[edge >> 2] = QuadEdge(edge);
+        EdgeId edge = makeEdgeId(freeQEdge);
+        freeQEdge = QuadEdgeId(getQuadEdge(edge).next[1]);
+        getQuadEdge(edge) = QuadEdge(edge);
         return edge;
     }
 
     void Subdiv2D::deleteEdge(EdgeId edge) {
-        Subdiv2D_DbgAssert((size_t)(edge >> 2) < (size_t)qedges.size());
+        dbgAssertEdgeInRange(edge);
         splice(edge, getEdge(edge, PREV_AROUND_ORG));
         auto sedge = symEdge(edge);
         splice(sedge, getEdge(sedge, PREV_AROUND_ORG));
 
-        edge >>= 2;
-        qedges[edge].next[0] = InvalidEdge;
-        qedges[edge].next[1] = freeQEdge;
-        freeQEdge = edge;
+        auto qedge = getQuadEdgeId(edge);
+        qedges[qedge.get()].next[0] = Invalid;
+        qedges[qedge.get()].next[1] = freeQEdge.get();
+        freeQEdge = qedge;
     }
 
     VertexId Subdiv2D::newPoint(Point2f pt, bool isvirtual, EdgeId firstEdge) {
         if (freePoint == InvalidVertex) {
             vtx.push_back(Vertex());
-            freePoint = static_cast<VertexId>(vtx.size() - 1);
+            freePoint = VertexId(vtx.size() - 1);
         }
         VertexId vidx = freePoint;
-        freePoint = vtx[vidx].firstEdge;
-        vtx[vidx] = Vertex(pt, isvirtual, firstEdge);
+        freePoint = VertexId(vtx[vidx.get()].firstEdge.get()); /// @todo ???
+        vtx[vidx.get()] = Vertex(pt, isvirtual, firstEdge);
 
         return vidx;
     }
 
     void Subdiv2D::deletePoint(VertexId vidx) {
-        Subdiv2D_DbgAssert(static_cast<size_t>(vidx) < vtx.size());
-        vtx[vidx].firstEdge = freePoint;
-        vtx[vidx].type = -1;
+        dbgAssertVertexInRange(vidx);
+        vtx[vidx.get()].firstEdge = EdgeId(freePoint.get());
+        vtx[vidx.get()].type = -1;
         freePoint = vidx;
     }
 
@@ -476,19 +488,19 @@ namespace subdiv2d {
         vtx.push_back(Vertex());
         qedges.push_back(QuadEdge());
 
-        freeQEdge = InvalidEdge;
+        freeQEdge = QuadEdgeId();
         freePoint = InvalidVertex;
 
         // Vertex 1: top, way past the right edge.
-        int pA = newPoint(ppA, false);
+        auto pA = newPoint(ppA, false);
         // Vertex 2: left, way past the bottom edge.
-        int pB = newPoint(ppB, false);
+        auto pB = newPoint(ppB, false);
         // Vertex 3: Way past the top-left corner
-        int pC = newPoint(ppC, false);
+        auto pC = newPoint(ppC, false);
 
-        int edge_AB = newEdge();
-        int edge_BC = newEdge();
-        int edge_CA = newEdge();
+        auto edge_AB = newEdge();
+        auto edge_BC = newEdge();
+        auto edge_CA = newEdge();
 
         setEdgePoints(edge_AB, pA, pB);
         setEdgePoints(edge_BC, pB, pC);
@@ -566,12 +578,12 @@ namespace subdiv2d {
                 Point2f virt_point = computeVoronoiPoint(org0, dst0, org1, dst1);
 
                 if (std::abs(virt_point.x) < MAX_VAL() * 0.5 && std::abs(virt_point.y) < MAX_VAL() * 0.5) {
-                    quadedge.pt[3] = qedges[edge1 >> 2].pt[3 - (edge1 & 2)] = qedges[edge2 >> 2].pt[3 - (edge2 & 2)] =
-                        newPoint(virt_point, true);
+                    quadedge.pt[3] = getQuadEdge(edge1).pt[3 - (edge1.get() & 2)] =
+                        getQuadEdge(edge2).pt[3 - (edge2.get() & 2)] = newPoint(virt_point, true);
                 }
             }
 
-            if (!quadedge.pt[1] == InvalidVertex) {
+            if (quadedge.pt[1].valid()) {
                 auto edge1 = getEdge(edge0, NEXT_AROUND_RIGHT);
                 auto edge2 = getEdge(edge1, NEXT_AROUND_RIGHT);
 
@@ -583,8 +595,8 @@ namespace subdiv2d {
                 Point2f virt_point = computeVoronoiPoint(org0, dst0, org1, dst1);
 
                 if (std::abs(virt_point.x) < MAX_VAL() * 0.5 && std::abs(virt_point.y) < MAX_VAL() * 0.5) {
-                    quadedge.pt[1] = qedges[edge1 >> 2].pt[1 + (edge1 & 2)] = qedges[edge2 >> 2].pt[1 + (edge2 & 2)] =
-                        newPoint(virt_point, true);
+                    quadedge.pt[1] = getQuadEdge(edge1).pt[1 + (edge1.get() & 2)] =
+                        getQuadEdge(edge2).pt[1 + (edge2.get() & 2)] = newPoint(virt_point, true);
                 }
             }
         }
@@ -624,7 +636,7 @@ namespace subdiv2d {
             Point2f t;
 
             for (;;) {
-                Subdiv2D_Assert(edgeDst(edge, &t) > 0);
+                Subdiv2D_Assert(edgeDst(edge, &t).valid());
                 if (isRightOf2(t, start, diff) >= 0)
                     break;
 
@@ -632,7 +644,7 @@ namespace subdiv2d {
             }
 
             for (;;) {
-                Subdiv2D_Assert(edgeOrg(edge, &t) > 0);
+                Subdiv2D_Assert(edgeOrg(edge, &t).valid());
 
                 if (isRightOf2(t, start, diff) < 0)
                     break;
@@ -653,7 +665,7 @@ namespace subdiv2d {
             edge = symEdge(edge);
         }
 
-        if (nearestPt && vertex > InvalidVertex) {
+        if (nearestPt && vertex.valid()) {
             *nearestPt = getVertex(vertex);
         }
 
@@ -668,7 +680,7 @@ namespace subdiv2d {
                 continue;
             }
             const auto& qedge = qedges[i];
-            if (qedge.pt[0] > InvalidVertex && qedge.pt[2] > InvalidVertex) {
+            if (qedge.pt[0].valid() && qedge.pt[2].valid()) {
                 Point2f org = getVertex(qedge.pt[0]);
                 Point2f dst = getVertex(qedge.pt[2]);
                 edgeList.push_back(Edge{org, dst});
@@ -731,12 +743,13 @@ namespace subdiv2d {
         }
 
         for (; i < total; ++i) {
-            VertexId k = idx.empty() ? static_cast<VertexId>(i) : idx[i];
+            VertexId k = idx.empty() ? VertexId(i) : idx[i];
 
-            if (vtx[k].isfree() || vtx[k].isvirtual()) {
+            auto const& vertex = getVertexInternal(k);
+            if (vertex.isfree() || vertex.isvirtual()) {
                 continue;
             }
-            auto edge = rotateEdge(vtx[k].firstEdge, 1);
+            auto edge = rotateEdge(vertex.firstEdge, 1);
             auto t = edge;
 
             // gather points
@@ -761,11 +774,11 @@ namespace subdiv2d {
                 continue;
 
             for (std::size_t j = 0; j < 4; ++j) {
-                int e = (int)(i * 4 + j);
-                int o_next = nextEdge(e);
-                int o_prev = getEdge(e, PREV_AROUND_ORG);
-                int d_prev = getEdge(e, PREV_AROUND_DST);
-                int d_next = getEdge(e, NEXT_AROUND_DST);
+                auto e = EdgeId(i * 4 + j);
+                auto o_next = nextEdge(e);
+                auto o_prev = getEdge(e, PREV_AROUND_ORG);
+                auto d_prev = getEdge(e, PREV_AROUND_DST);
+                auto d_next = getEdge(e, NEXT_AROUND_DST);
 
                 // check points
                 Subdiv2D_Assert(edgeOrg(e) == edgeOrg(o_next));
@@ -785,6 +798,15 @@ namespace subdiv2d {
         }
     }
 
+    void Subdiv2D::dbgAssertEdgeInRange(EdgeId edge) const {
+        Subdiv2D_DbgAssert(static_cast<size_t>(getQuadEdgeId(edge).get()) < qedges.size());
+    }
+
+    void Subdiv2D::dbgAssertVertexInRange(VertexId vertex) const {
+        Subdiv2D_DbgAssert(vertex.valid());
+        Subdiv2D_DbgAssert(static_cast<size_t>(vertex.get()) < vtx.size());
+    }
+
     static inline float simpleAbsPointDistance(Point2f const& a, Point2f const& b) {
         // think this is the manhattan distance...
         auto diff = a - b;
@@ -801,10 +823,10 @@ namespace subdiv2d {
 
         detail::LocateSubResults ret;
         {
-            int edge = recentEdge;
-            Subdiv2D_Assert(edge > 0);
+            auto edge = recentEdge;
+            Subdiv2D_Assert(edge.valid());
 
-            int right_of_curr = isRightOf(pt, edge);
+            auto right_of_curr = isRightOf(pt, edge);
             if (right_of_curr > 0) {
                 edge = symEdge(edge);
                 right_of_curr = -right_of_curr;
@@ -812,11 +834,11 @@ namespace subdiv2d {
 
             const std::size_t maxEdges = qedges.size() * 4;
             for (std::size_t i = 0; i < maxEdges; ++i) {
-                int onext_edge = nextEdge(edge);
-                int dprev_edge = getEdge(edge, PREV_AROUND_DST);
+                auto onext_edge = nextEdge(edge);
+                auto dprev_edge = getEdge(edge, PREV_AROUND_DST);
 
-                int right_of_onext = isRightOf(pt, onext_edge);
-                int right_of_dprev = isRightOf(pt, dprev_edge);
+                auto right_of_onext = isRightOf(pt, onext_edge);
+                auto right_of_dprev = isRightOf(pt, dprev_edge);
 
                 if (right_of_dprev > 0) {
                     if (right_of_onext > 0 || (right_of_onext == 0 && right_of_curr == 0)) {
@@ -895,6 +917,22 @@ namespace subdiv2d {
         }
         return ret;
     }
+
+    Subdiv2D::QuadEdge& Subdiv2D::getQuadEdge(EdgeId edge) { return qedges[getQuadEdgeId(edge).get()]; }
+
+    Subdiv2D::QuadEdge const& Subdiv2D::getQuadEdge(EdgeId edge) const { return qedges[getQuadEdgeId(edge).get()]; }
+
+    Subdiv2D::QuadEdge& Subdiv2D::getQuadEdge(QuadEdgeId qedge) { return qedges[qedge.get()]; }
+
+    Subdiv2D::QuadEdge const& Subdiv2D::getQuadEdge(QuadEdgeId qedge) const { return qedges[qedge.get()]; }
+
+    Subdiv2D::Vertex& Subdiv2D::getVertexInternal(VertexId vertex) { return vtx[vertex.get()]; }
+
+    Subdiv2D::Vertex const& Subdiv2D::getVertexInternal(VertexId vertex) const { return vtx[vertex.get()]; }
+
+    std::size_t Subdiv2D::getNumQuadEdges() const { return qedges.size(); }
+
+    std::size_t Subdiv2D::getMaxNumEdges() const { return getNumQuadEdges() << 2; }
 
 } // namespace subdiv2d
 } // namespace sensics
