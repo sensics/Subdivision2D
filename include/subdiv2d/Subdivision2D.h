@@ -67,6 +67,7 @@
 
 // Standard includes
 #include <array>
+#include <tuple>
 #include <vector>
 
 namespace sensics {
@@ -208,6 +209,9 @@ namespace subdiv2d {
            processing mode is selected, CV_PTLOC_ERROR is returned.
          */
         PtLoc locate(Point2f pt, EdgeId& edge, VertexId& vertex);
+
+        /** @overload */
+        std::tuple<PtLoc, EdgeId, VertexId> locate(Point2f pt);
 
         /** @brief Finds the subdivision vertex closest to the given point.
 

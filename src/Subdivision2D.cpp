@@ -381,6 +381,13 @@ namespace subdiv2d {
         return result.locateStatus;
     }
 
+    std::tuple<PtLoc, EdgeId, VertexId> Subdiv2D::locate(Point2f pt) {
+        EdgeId edge;
+        VertexId vertex;
+        auto stat = locate(pt, edge, vertex);
+        return std::make_tuple(stat, edge, vertex);
+    }
+
     inline int isPtInCircle3(Point2f pt, Point2f a, Point2f b, Point2f c) {
         const double eps = Subdiv2D::EPSILON() * 0.125;
         double val = ((double)a.x * a.x + (double)a.y * a.y) * triangleArea(b, c, pt);
