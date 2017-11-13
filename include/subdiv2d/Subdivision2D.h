@@ -67,6 +67,7 @@
 
 // Standard includes
 #include <array>
+#include <initializer_list>
 #include <tuple>
 #include <vector>
 
