@@ -221,7 +221,7 @@ namespace subdiv2d {
         pt[0] = pt[1] = pt[2] = pt[3] = InvalidVertex;
     }
 
-    bool Subdiv2D::QuadEdge::isfree() const { return next[0] != Invalid; }
+    bool Subdiv2D::QuadEdge::isfree() const { return next[0] <= Invalid; }
 
     Subdiv2D::Vertex::Vertex() {
         firstEdge = InvalidEdge;
