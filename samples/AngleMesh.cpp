@@ -28,26 +28,17 @@
 #include <subdiv2d/SubdivContainer.h>
 
 // Library/third-party includes
-#include "EigenStdArrayInterop.h"
 #include <Eigen/Core>
-#include <docopt.h>
+
+#include "EigenStdArrayInterop.h"
 
 // Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <map>
 #include <sstream>
 
 static const float STEPS = 5;
-
-static const char USAGE[] =
-    R"(Angle mesh test app for interpolation.
-
-Usage: AngleMesh --data=FILE
-
-  -d FILE --data=FILE  Specify the tab-separated field angles and plane locations filename.
-)";
 
 using namespace sensics::subdiv2d;
 
@@ -146,7 +137,7 @@ bool computeWeights(Vertices& vertices, Point2f const& pt) {
     }
     if (vertices.size() == 3) {
         // in a triangle
-        sort(pt, vertices); /// @todo remove once we have a guarantee of order in the returned vertices.
+        // sort(pt, vertices); /// @todo remove once we have a guarantee of order in the returned vertices.
         auto totalDoubleArea = doubleTriangleArea(vertices[0].location, vertices[1].location, vertices[2].location);
         vertices[0].weight = doubleTriangleArea(vertices[1].location, vertices[2].location, pt) / totalDoubleArea;
         vertices[1].weight = doubleTriangleArea(vertices[0].location, pt, vertices[2].location) / totalDoubleArea;
@@ -175,12 +166,6 @@ Point2d interpolate(Vertices const& vertices) {
     return ret;
 }
 int main(int argc, char* argv[]) {
-#if 0
-    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc},
-                                                               true // show help if requested
-    );
-    std::string fn = args["data"].asString();
-#endif
     std::string fn = argv[1];
     auto myFile = std::ifstream(fn);
     auto measurements = readInputMeasurements(fn, myFile);

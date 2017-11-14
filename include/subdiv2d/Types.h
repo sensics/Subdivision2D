@@ -153,11 +153,23 @@ namespace subdiv2d {
 
     using Point2f = Point_<float>;
 
+    /// @brief Computes twice the signed area of a triangle a b c. You can find a triangle's area by dividing it by 2.
     // (Xb - Xa)(Yc - Ya) - (Yb - Ya)(Xc - Xa)
     // Renamed from triangleArea to just be honest - for the uses, 2*area is just as suitable as area, but it shouldn't
     // be labeled area (just as squared norm shouldn't be labeled norm)
     static inline double doubleTriangleArea(Point2f a, Point2f b, Point2f c) {
         return ((double)b.x - a.x) * ((double)c.y - a.y) - ((double)b.y - a.y) * ((double)c.x - a.x);
+    }
+
+    /** @brief Is pt to the right of the line from a to b (facing toward b)?
+    Note that no epsilon is used: so "very nearly collinear" will return non-zero typically...
+
+    @returns 1 if to the right, -1 if to the left, and 0 if collinear */
+    static inline int isRightOf(Point2f pt, Point2f a, Point2f b) {
+        auto cw_area = doubleTriangleArea(pt, b, a);
+
+        // returns 1 if cw_area > 0, -1 if cw_area < 0, and 0 if cw_area == 0.
+        return (cw_area > 0) - (cw_area < 0);
     }
 
     /** @brief Template class for specifying the size of an image or rectangle.

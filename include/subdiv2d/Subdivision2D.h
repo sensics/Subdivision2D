@@ -81,13 +81,6 @@ namespace subdiv2d {
         PTLOC_VERTEX = 1,        //!< Point coincides with one of the subdivision vertices
         PTLOC_ON_EDGE = 2        //!< Point on some edge
     };
-#if 0
-    using VertexId = int;
-    static const VertexId InvalidVertex = 0;
-
-    using EdgeId = int;
-    static const EdgeId InvalidEdge = 0;
-#endif
     using VertexArray = std::array<VertexId, 3>;
 
     namespace detail {
@@ -107,6 +100,12 @@ namespace subdiv2d {
             void addVertex(VertexId vertex);
             void setVertices(std::initializer_list<VertexId> const& newVertices);
             bool isVertexInVertices(VertexId vertex) const;
+
+            int right_of_current = 0;
+            EdgeId onext = InvalidEdge;
+            int right_of_onext = 0;
+            EdgeId dprev = InvalidEdge;
+            int right_of_dprev = 0;
 
           private:
             EdgeId edge = InvalidEdge;
@@ -350,6 +349,14 @@ namespace subdiv2d {
         given point */
         std::vector<VertexId> locateVertexIds(Point2f const& pt);
 
+        /** @brief Returns the applicable user-supplied vertex or vertices (non-invalid count will be 1 if on a vertex,
+        2 if on an edge, 3 if in a facet) for a given point
+
+        Unlike ordinary locateVertexIds, this function will not return the special "bounding" vertices not supplied by
+        the user, but will instead choose the nearest fully-user-supplied triangle.
+        */
+        VertexArray locateVertexIdsForInterpolationArray(Point2f const& pt);
+
         /** @brief Returns the location of the applicable vertex or vertices (1 if on a vertex, 2 if on an edge, 3 if in
         a facet) for a given point */
         void locateVertices(Point2f const& pt, std::vector<Point>& outVertices);
@@ -363,6 +370,9 @@ namespace subdiv2d {
 
         /** @brief Is the subdivision empty? */
         bool empty() const;
+
+        /** @brief is a given vertex a non-user-supplied boundary vertex? */
+        static bool isVertexBoundary(VertexId vertex);
 
       private:
         static const int Invalid = 0;
@@ -404,7 +414,14 @@ namespace subdiv2d {
             QuadEdge(EdgeId edgeidx);
             bool isfree() const;
 
-            /// @todo Some values are EdgeId, some are QuadEdgeId. Thus, we lose type safety here.
+            /// @todo Some values are EdgeId, some are QuadEdgeId. Thus, we lose type safety here. This is the tradeoff
+            /// of a primal-dual implementation like this. (I imagine it could probably be done differently with a
+            /// heterogeneous array, etc. but maybe not in C++, at least not easily...)
+            ///
+            /// - next[0] corresponds to next around origin
+            /// - next[1] corresponds to next around right face?
+            /// - next[2] corresponds to next around dest
+            /// - next[3] corresponds to next around left face ?
             int next[4];
             VertexId pt[4];
 

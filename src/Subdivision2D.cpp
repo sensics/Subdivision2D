@@ -3,6 +3,15 @@
 
     @date 2017
 
+    Note that the OpenCV code appears to follow closely the terminology, etc. of this
+    handout from Stanford course CS348a:
+    http://graphics.stanford.edu/courses/cs348a-17-winter/ReaderNotes/handout30.pdf
+    (archived at
+   https://web.archive.org/web/20171114214326/http://graphics.stanford.edu/courses/cs348a-17-winter/ReaderNotes/handout30.pdf)
+    along with the subsequent note
+   https://web.archive.org/web/20171114215136/http://graphics.stanford.edu/courses/cs348a-17-winter/ReaderNotes/handout31.pdf
+    first taught in 1991.
+
     OpenCV web site clarifies that OpenCV is provided under the 3-clause BSD license.
 
     SPDX-License-Identifier:BSD-3-Clause
@@ -55,10 +64,13 @@
 
 // Internal Includes
 #include "subdiv2d/Subdivision2D.h"
+#include "Subdiv2DConfig.h"
 #include "subdiv2d/AssertAndError.h"
 
 // Library/third-party includes
-// - none
+#ifdef SUBDIV2D_USE_BOOST_SMALL_VECTOR
+#include <boost/container/small_vector.hpp>
+#endif
 
 // Standard includes
 #include <cassert>
@@ -66,6 +78,11 @@
 
 namespace sensics {
 namespace subdiv2d {
+#ifdef SUBDIV2D_USE_BOOST_SMALL_VECTOR
+    using SmallEdgeVector = boost::container::small_vector<EdgeId, 16>;
+#else
+    using SmallEdgeVector = std::vector<EdgeId>;
+#endif
     namespace detail {
         EdgeId LocateSubResults::getEdge() const { return edge; }
         bool LocateSubResults::hasOtherEdge() const { return otherEdge != InvalidEdge; }
@@ -300,6 +317,111 @@ namespace subdiv2d {
         return ret;
     }
 
+    VertexArray Subdiv2D::locateVertexIdsForInterpolationArray(Point2f const& pt) {
+        auto result = locateSub(pt);
+        /// Only in vertices = 3 case might we have a bounding vertex
+        if (result.numVertices() != 3) {
+            return result.getVertices();
+        }
+        // Ordered array of edges
+        // symEdge is required to make them all correctly/consistently oriented
+        std::array<EdgeId, 3> myEdges = {result.dprev, symEdge(result.getEdge()), result.onext};
+        Subdiv2D_DbgAssert(edgeDst(myEdges[0]) == edgeOrg(myEdges[1]));
+        Subdiv2D_DbgAssert(edgeDst(myEdges[1]) == edgeOrg(myEdges[2]));
+        Subdiv2D_DbgAssert(edgeDst(myEdges[2]) == edgeOrg(myEdges[0]));
+
+        // Ordered array of vertices: specifically, the destination of the corresponding edge in myEdges.
+        std::array<VertexId, 3> myVertices;
+        std::transform(myEdges.begin(), myEdges.end(), myVertices.begin(),
+                       [&](EdgeId const& edge) { return edgeDst(edge); });
+
+        // Binary array indicating whether the corresponding vertex is "real" (not boundary)
+        std::array<bool, 3> realDestinations;
+        std::transform(myVertices.begin(), myVertices.end(), realDestinations.begin(),
+                       [&](VertexId const& vertex) { return !isVertexBoundary(vertex); });
+
+        const auto numRealVertices = std::count(realDestinations.begin(), realDestinations.end(), true);
+
+        switch (numRealVertices) {
+        case 3:
+#if 0
+            /// @todo make this sorted
+            return result.getVertices();
+#else
+            return myVertices;
+#endif
+        case 2: {
+#if 0
+            // Binary array indicating whether the corresponding edge is "real" (neither origin nor dest are boundary)
+            std::array<bool, 3> realEdges;
+            for (std::size_t i = 0; i < realEdges.size(); ++i) {
+                bool val = false;
+                if (realDestinations[i]) {
+                    // the edges are circular and linked, so our origin is the previous destination.
+                    const auto originIndex = (static_cast<int>(i) - 1) % realEdges.size();
+                    val = realEdges[originIndex];
+                }
+                realEdges[i] = val;
+            }
+            auto edgeIt = std::find_if(myEdges.begin(), myEdges.end(), [&](EdgeId const& edge) {
+                return !isVertexBoundary(edgeDst(edge)) && !isVertexBoundary(edgeOrg(edge));
+            });
+#endif
+            EdgeId goodEdge;
+            for (std::size_t i = 0; i < 3; ++i) {
+                if (realDestinations[i]) {
+                    // the edges are circular and linked, so our origin is the previous destination.
+                    // and -1 in mod3 is +2.
+                    const auto originIndex = (i + 2) % 3;
+                    if (realDestinations[originIndex]) {
+                        goodEdge = myEdges[i];
+                        break;
+                    }
+                }
+            }
+            Subdiv2D_Assert(goodEdge);
+#if 0
+            auto goodEdgeIndex = std::distance(realEdges.begin(), std::find(realEdges.begin(), realEdges.end(), true));
+            auto goodEdge = myEdges[goodEdgeIndex];
+#endif
+            Subdiv2D_DbgAssert(!isVertexBoundary(edgeOrg(goodEdge)) && !isVertexBoundary(edgeDst(goodEdge)));
+            // We now want the opposite side.
+            Subdiv2D_Assert(isRightOf(pt, goodEdge));
+            auto newEdge = getEdge(goodEdge, NEXT_AROUND_LEFT);
+            result.setEdges(goodEdge, newEdge);
+            result.setVertices({edgeOrg(goodEdge), edgeDst(goodEdge), edgeDst(newEdge)});
+            return result.getVertices();
+        }
+        case 1: {
+            // OK, so we only have one good destination, which means we need two new edges.
+            auto goodDestIndex = std::distance(realDestinations.begin(),
+                                               std::find(realDestinations.begin(), realDestinations.end(), true));
+            const auto edgeWithGoodDest = myEdges[goodDestIndex];
+            const auto edgeWithGoodOrig = myEdges[(goodDestIndex + 1) % 3];
+            SmallEdgeVector possibleEdges;
+            EdgeId currentEdge = getEdge(edgeWithGoodDest, NEXT_AROUND_LEFT);
+            while (currentEdge && currentEdge != edgeWithGoodOrig) {
+                std::cout << "Possible: " << currentEdge << std::endl;
+                possibleEdges.push_back(currentEdge);
+                currentEdge = nextEdge(currentEdge);
+            }
+            if (possibleEdges.size() < 2) {
+                Subdiv2D_Error(Error::StsError, "Couldn't find at least two possible edges!");
+            }
+            /// @todo pick more carefully here.
+            auto edge1 = symEdge(possibleEdges[0]);
+            auto edge2 = possibleEdges[1];
+            result.setEdges(edge1, edge2);
+            result.setVertices({edgeOrg(edge1), edgeDst(edge1), edgeDst(edge2)});
+            return result.getVertices();
+        }
+        default:
+            Subdiv2D_Error(Error::StsError, "Should not happen!");
+            break;
+        }
+        return VertexArray();
+    }
+
     void Subdiv2D::locateVertices(Point2f const& pt, std::vector<Point>& outVertices) {
         outVertices.clear();
         auto ids = locateVertexIdsArray(pt);
@@ -317,6 +439,8 @@ namespace subdiv2d {
     }
 
     bool Subdiv2D::empty() const { return qedges.size() < 4; }
+
+    bool Subdiv2D::isVertexBoundary(VertexId vertex) { return vertex.valid() && (vertex.get() < 4); }
 
     EdgeId Subdiv2D::newEdge() {
         if (!freeQEdge.valid()) {
@@ -829,9 +953,12 @@ namespace subdiv2d {
 
             auto right_of_curr = isRightOf(pt, edge);
             if (right_of_curr > 0) {
+                // If pt is right of edge, then swap edge with its symmetric edge, so it becomes left of edge.
+                // pt collinear with edge: no changes.
                 edge = symEdge(edge);
                 right_of_curr = -right_of_curr;
             }
+            // right_of_curr == -1 or 0
 
             const std::size_t maxEdges = qedges.size() * 4;
             for (std::size_t i = 0; i < maxEdges; ++i) {
@@ -842,9 +969,17 @@ namespace subdiv2d {
                 auto right_of_dprev = isRightOf(pt, dprev_edge);
 
                 if (right_of_dprev > 0) {
+                    // pt is right of the edge "previous around dest" from "edge"
                     if (right_of_onext > 0 || (right_of_onext == 0 && right_of_curr == 0)) {
+                        // Two cases: Either
+                        // 1. pt is right of the edge "next around origin" from "edge", or,
+                        // 2. pt is collinear with the "next around origin" edge and pt is collinear with "edge"
                         ret.locateStatus = PtLoc::PTLOC_INSIDE;
                         ret.setEdges(edge, dprev_edge);
+                        ret.dprev = dprev_edge;
+                        ret.right_of_dprev = right_of_dprev;
+                        ret.onext = onext_edge;
+                        ret.right_of_onext = right_of_onext;
                         break;
                     } else {
                         right_of_curr = right_of_onext;
@@ -855,6 +990,10 @@ namespace subdiv2d {
                         if (right_of_dprev == 0 && right_of_curr == 0) {
                             ret.locateStatus = PtLoc::PTLOC_INSIDE;
                             ret.setEdges(edge, onext_edge);
+                            ret.dprev = dprev_edge;
+                            ret.right_of_dprev = right_of_dprev;
+                            ret.onext = onext_edge;
+                            ret.right_of_onext = right_of_onext;
                             break;
                         } else {
                             right_of_curr = right_of_dprev;
@@ -901,6 +1040,9 @@ namespace subdiv2d {
             } else {
                 // this case means, really inside.
                 ret.setVertices({orgId, dstId});
+                Subdiv2D_DbgAssert(isRightOf(pt, ret.getEdge()));
+                Subdiv2D_DbgAssert(isRightOf(pt, ret.onext));
+                Subdiv2D_DbgAssert(isRightOf(pt, ret.dprev));
                 // Grab the second edge in the vector.
                 Subdiv2D_Assert(ret.hasOtherEdge());
                 auto otherEdge = ret.getOtherEdge();

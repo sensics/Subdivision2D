@@ -60,7 +60,11 @@ namespace subdiv2d {
 
     SubdivContainerBase::BaseVector SubdivContainerBase::locateNeighborhood(Point2f const& pt) {
         BaseVector ret;
+#if 0
         auto vertexIds = subdiv_.locateVertexIdsArray(pt);
+#else
+        auto vertexIds = subdiv_.locateVertexIdsForInterpolationArray(pt);
+#endif
         std::cout << "Vertices ";
         for (auto v : vertexIds) {
             std::cout << " " << v;
