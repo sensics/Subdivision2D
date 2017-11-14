@@ -130,6 +130,8 @@ namespace subdiv2d {
         /// If the point is in some facet, return the three vertices and values of that facet.
         /// Otherwise (out of bounds, etc), return an empty container.
         ContainerVertices<value_type> findNeighborhood(Point2f const& pt);
+
+        ContainerVertices<value_type> findNeighborsAndWeightsForInterpolation(Point2f const& pt);
 #if 0
         /// If the point is a vertex in the subdivision, return just the point and its value in outVertices.
         /// If the point is on an edge, return the vertices and values at either end of the edge.
@@ -211,57 +213,6 @@ namespace subdiv2d {
     template <typename T> inline bool SubdivContainer<T>::get_(VertexId vertexId, pointer_type outPtr) {
         return get_(getValueId(vertexId), outPtr);
     }
-#if 0
-    template <typename T> inline bool SubdivContainer<T>::findNearest(Point2f const& pt, Vertices& outVertices) {
-        auto vertices = subdiv_.locateVertexIdsArray(pt);
-        std::cout << "Vertices ";
-        for (auto& v : vertices) {
-            std::cout << " " << v;
-        }
-        std::cout << std::endl;
-        auto locateResult = subdiv_.locate(pt);
-        switch (std::get<PtLoc>(locateResult)) {
-        case PtLoc::PTLOC_INSIDE:
-            return setFromFacet_(pt, std::get<EdgeId>(locateResult), outVertices);
-        case PtLoc::PTLOC_ON_EDGE:
-            return setFromEdge_(std::get<EdgeId>(locateResult), outVertices);
-        case PtLoc::PTLOC_VERTEX:
-            return setFromVertex_(pt, std::get<VertexId>(locateResult), outVertices);
-        default:
-            return false;
-        }
-    }
-    template <typename T>
-    inline bool SubdivContainer<T>::setFromVertex_(Point2f const& pt, VertexId vertexId, Vertices& outVertices) {
-
-        Vertex v;
-        v.location = pt;
-        if (!get_(vertexId, v.value)) {
-            return false;
-        }
-        outVertices = {std::move(v)};
-        return true;
-    }
-    template <typename T> inline bool SubdivContainer<T>::setFromEdge_(EdgeId edgeId, Vertices& outVertices) {
-        Vertex org;
-        int orgId = subdiv_.edgeOrg(edgeId, &org.location);
-        if (!get_(orgId, org.value)) {
-            return false;
-        }
-        Vertex dst;
-        int dstId = subdiv_.edgeDst(edgeId, &dst.location);
-        if (!get_(dstId, dst.value)) {
-            return false;
-        }
-        outVertices = {std::move(org), std::move(dst)};
-        return true;
-    }
-    template <typename T>
-    inline bool SubdivContainer<T>::setFromFacet_(Point2f const& pt, EdgeId edgeId, Vertices& outVertices) {
-        /// @todo
-        return false;
-    }
-#endif
 } // namespace subdiv2d
 } // namespace sensics
 #endif // INCLUDED_SubdivContainer_h_GUID_B7F5EEE6_E316_4EA6_5A20_EDADEE3D99A9
