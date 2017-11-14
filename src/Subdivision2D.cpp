@@ -276,15 +276,11 @@ namespace subdiv2d {
         splice(sedge, getEdge(b, NEXT_AROUND_LEFT));
     }
 
-    static double triangleArea(Point2f a, Point2f b, Point2f c) {
-        return ((double)b.x - a.x) * ((double)c.y - a.y) - ((double)b.y - a.y) * ((double)c.x - a.x);
-    }
-
     int Subdiv2D::isRightOf(Point2f pt, EdgeId edge) const {
         Point2f org, dst;
         edgeOrg(edge, &org);
         edgeDst(edge, &dst);
-        double cw_area = triangleArea(pt, dst, org);
+        double cw_area = doubleTriangleArea(pt, dst, org);
 
         return (cw_area > 0) - (cw_area < 0);
     }
@@ -386,10 +382,10 @@ namespace subdiv2d {
 
     inline int isPtInCircle3(Point2f pt, Point2f a, Point2f b, Point2f c) {
         const double eps = Subdiv2D::EPSILON() * 0.125;
-        double val = ((double)a.x * a.x + (double)a.y * a.y) * triangleArea(b, c, pt);
-        val -= ((double)b.x * b.x + (double)b.y * b.y) * triangleArea(a, c, pt);
-        val += ((double)c.x * c.x + (double)c.y * c.y) * triangleArea(a, b, pt);
-        val -= ((double)pt.x * pt.x + (double)pt.y * pt.y) * triangleArea(a, b, c);
+        double val = ((double)a.x * a.x + (double)a.y * a.y) * doubleTriangleArea(b, c, pt);
+        val -= ((double)b.x * b.x + (double)b.y * b.y) * doubleTriangleArea(a, c, pt);
+        val += ((double)c.x * c.x + (double)c.y * c.y) * doubleTriangleArea(a, b, pt);
+        val -= ((double)pt.x * pt.x + (double)pt.y * pt.y) * doubleTriangleArea(a, b, c);
 
         return val > eps ? 1 : val < -eps ? -1 : 0;
     }
@@ -898,7 +894,7 @@ namespace subdiv2d {
                 ret.setVertices({dstId});
                 ret.setEdges();
             } else if ((orgDist < edgeDist || dstDist < edgeDist) &&
-                       std::abs(triangleArea(pt, org_pt, dst_pt)) < EPSILON()) {
+                       std::abs(doubleTriangleArea(pt, org_pt, dst_pt)) < EPSILON()) {
                 ret.locateStatus = PtLoc::PTLOC_ON_EDGE;
                 ret.setEdges(ret.getEdge());
                 ret.setVertices({orgId, dstId});

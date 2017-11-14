@@ -45,13 +45,18 @@ namespace subdiv2d {
         /// These are the only vertices that may have associated values.
         AdditionalVertex
     };
+    /// Common elements when returning vertices
     struct ContainerVertexBase {
         VertexStatus status = VertexStatus::Unpopulated;
         VertexId id = InvalidVertex;
         VertexValueId valueId = InvalidVertexValueId;
         bool hasValue = false;
         Point2f location;
+
+        /// Relative weight of this point, in case of doing interpolation/extrapolation. Left 0 otherwise.
+        double weight = 0;
     };
+    /// Container-template-type-specific element for returning vertices
     template <typename T> struct ContainerVertexValue : ContainerVertexBase {
         ContainerVertexValue() = default;
         ContainerVertexValue(ContainerVertexBase const& base) : ContainerVertexBase(base) {}

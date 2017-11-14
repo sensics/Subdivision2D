@@ -67,6 +67,7 @@
 // - none
 
 // Standard includes
+#include <cmath>
 #include <iosfwd>
 #include <limits>
 #include <tuple>
@@ -81,6 +82,9 @@ namespace subdiv2d {
         value_type x;
         value_type y;
 
+        value_type squaredNorm() const { return x * x + y * y; }
+        value_type norm() const { return std::sqrt(squaredNorm()); }
+
         Point_& operator-=(Point_ const& rhs) {
             x -= rhs.x;
             y -= rhs.y;
@@ -91,15 +95,49 @@ namespace subdiv2d {
             y += rhs.y;
             return *this;
         }
+        /// multiply by a scalar
+        Point_& operator*=(value_type scalar) {
+            x *= scalar;
+            y *= scalar;
+            return *this;
+        }
+        /// divide by a scalar
+        Point_& operator/=(value_type scalar) {
+            x /= scalar;
+            y /= scalar;
+            return *this;
+        }
+
+        value_type dot(Point_ const& rhs) const { return x * rhs.x + y * rhs.y; }
     };
+    /// componentwise difference
     template <typename T> static inline Point_<T> operator-(Point_<T> const& lhs, Point_<T> const& rhs) {
         auto ret = Point_<T>(lhs);
         ret -= rhs;
         return ret;
     }
+    /// componentwise sum
     template <typename T> static inline Point_<T> operator+(Point_<T> const& lhs, Point_<T> const& rhs) {
         auto ret = Point_<T>(lhs);
         ret += rhs;
+        return ret;
+    }
+    /// Scalar multiply
+    template <typename T> static inline Point_<T> operator*(Point_<T> const& pt, T scalar) {
+        auto ret = pt;
+        ret *= scalar;
+        return ret;
+    }
+    /// Scalar multiply
+    template <typename T> static inline Point_<T> operator*(T scalar, Point_<T> const& pt) {
+        auto ret = pt;
+        ret *= scalar;
+        return ret;
+    }
+    /// Scalar division
+    template <typename T> static inline Point_<T> operator/(Point_<T> const& pt, T scalar) {
+        auto ret = pt;
+        ret /= scalar;
         return ret;
     }
     template <typename T> static inline bool operator==(Point_<T> const& lhs, Point_<T> const& rhs) {
@@ -114,6 +152,13 @@ namespace subdiv2d {
     }
 
     using Point2f = Point_<float>;
+
+    // (Xb - Xa)(Yc - Ya) - (Yb - Ya)(Xc - Xa)
+    // Renamed from triangleArea to just be honest - for the uses, 2*area is just as suitable as area, but it shouldn't
+    // be labeled area (just as squared norm shouldn't be labeled norm)
+    static inline double doubleTriangleArea(Point2f a, Point2f b, Point2f c) {
+        return ((double)b.x - a.x) * ((double)c.y - a.y) - ((double)b.y - a.y) * ((double)c.x - a.x);
+    }
 
     /** @brief Template class for specifying the size of an image or rectangle.
 

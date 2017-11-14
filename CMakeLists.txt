@@ -74,5 +74,6 @@ if(NOT IS_SUBPROJECT)
 	include(CTest)
 	add_subdirectory(vendor)
 	add_subdirectory(tests)
+	add_subdirectory(samples)
 endif()
 
